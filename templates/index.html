@@ -1,0 +1,4364 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>
+   Stimmungskompass
+  </title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="{{ url_for('favicon') }}" type="image/x-icon">
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+
+</script>
+<!-- Leaflet Draw CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" rel="stylesheet"/>
+<!-- Leaflet Draw JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js">
+</script>
+<!-- Heatmap plugin -->
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
+</script>
+
+<!-- Include Spectrum's CSS from CDN -->
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.css" />
+
+<!-- Include Spectrum's JavaScript from CDN -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js"></script>
+
+<!-- The categories will be loaded from 'categories.html' -->
+<iframe id="categories-frame" src="/categories" style="display:none;">
+</iframe>
+
+<div id="landscape-blocker" style="display: none;">
+    <p>Der Stimmungskompass ist nur im Hochformat verfügbar.</p>
+    <img id="anti-rotate-image" src="static/antirotate.png" alt="Rotate Device" style="max-width: 30%; height: auto; display: block; margin: 0 auto;">
+</div>
+
+<div id="portrait-blocker" style="display: none;">
+    <p>Der Stimmungskompass ist nur im Querformat verfügbar.</p>
+    <img id="anti-rotate-image" src="static/antirotate_ipad.png" alt="Rotate Device" style="max-width: 30%; height: auto; display: block; margin: 0 auto;">
+</div>
+
+
+<style type="text/css">
+  background-color: var(--background-color); /* Apply background color */
+    color: var(--text-color); /* Apply text color */  </style>
+</head>
+
+<style>
+  /* BASIC CSS START */
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevent scrolling */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    font-family: 'Roboto', sans-serif !important;
+    background-color: var(--background-color); /* Apply background color */
+    color: var(--text-color); /* Apply text color */
+}
+
+.resistant-h3 {
+    color: var(--text-color); /* Use the text color based on the current theme */
+    /* Add other styles as needed */
+}
+
+.filterx-container {
+display:none !important;
+}
+
+#landscape-blocker {
+    display: none; /* Initially hidden */
+    position: fixed; /* Overlay the whole screen */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black; /* Black background */
+    color: white; /* White text color */
+    z-index: 9999; /* Ensure it's on top of other elements */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    text-align: center; /* Ensure text alignment is centered */
+}
+
+.object-item-text {
+    color: var(--text-color); /* Use CSS variable for dynamic color */
+}
+
+/* Optional: Add media query for smaller screens if the text is too large */
+@media (max-width: 768px) {
+    #landscape-blocker {
+        font-size: 16px;
+    }
+}
+
+#portrait-blocker {
+    display: none; /* Initially hidden */
+    position: fixed; /* Overlay the whole screen */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black; /* Black background */
+    color: white; /* White text color */
+    z-index: 9999; /* Ensure it's on top of other elements */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    text-align: center; /* Ensure text alignment is centered */
+}
+
+/* Optional: Add media query for larger screens */
+@media (min-width: 768px) {
+    #portrait-blocker {
+        font-size: 20px;
+    }
+}
+
+*, *:before, *:after {
+    box-sizing: inherit; /* Inherit box-sizing */
+}
+
+/* Desktop Styles */
+@media (min-width: 768px) {
+    #map, #sidebar {
+        position: absolute;
+        top: 15px;
+        bottom: 15px;
+
+        border-radius: 30px;
+        overflow: hidden;
+    }
+
+    #map {
+        left: 15px;
+        right: calc(30% + 15px);
+    }
+
+     #sidebar {
+        position: absolute;
+        width: calc(30% - 15px);
+        right: 15px;
+        top: 15px;
+        bottom: 15px;
+        padding: 10px;
+        border-radius: 30px;
+        overflow: hidden;
+        background: var(--sidebar-bg); /* Use variable for background */
+    }
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none;
+    }
+}
+
+
+
+#map {
+    left: 15px; /* Consistent margin from the left */
+    right: calc(30% + 15px); /* Adjusting for sidebar width and margin */
+}
+
+#sidebar {
+    width: calc(30% - 15px); /* Sidebar takes up 30% width minus right margin */
+    right: 15px; /* Consistent margin from the right */
+    padding: 10px;
+}
+
+
+/* Custom Scrollbar Styles */
+/* For Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 0px; /* Hide scrollbar globally */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: transparent; /* Invisible scrollbar thumb globally */
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+body {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+/* Custom scrollbar for object list */
+#object-list::-webkit-scrollbar {
+    width: 6px; /* Adjust the width for object list */
+}
+
+#object-list::-webkit-scrollbar-thumb {
+    background-color: #888; /* Customize the scrollbar thumb color for object list */
+    border-radius: 3px; /* Add rounded corners for object list scrollbar */
+}
+
+#object-list {
+    overflow-y: auto; /* Enable scrolling for object list */
+    max-height: 350px; /* Adjust height as needed */
+    scrollbar-width: thin; /* Use a thin scrollbar for the object list in Firefox */
+    -ms-overflow-style: scrollbar; /* Enable scrollbar for IE and Edge */
+}
+
+/* Exception for the scrollbar inside the object list */
+#object-list.custom-scrollbar {
+    border-radius: 10px; /* Add rounded corners to the object list */
+}
+
+/* Custom Scrollbar CSS End */
+
+
+/* CITY PICTURE CSS START */
+.logo-img {
+max-width: 100%;
+width: 100%;
+box-sizing: border-box;
+height: auto;
+display: block;
+margin-left:auto;
+margin-right:auto;
+margin-top: 3px;
+margin-bottom: 8px; 
+border-radius: 30px;"
+}
+/* CITY PICTURE CSS END */
+
+/* LEAFLET MAP PILL CSS */
+.leaflet-bar, .leaflet-draw-section, .leaflet-draw-section {
+  border-radius: 30px !important;
+  border: none;
+  background-color: var(--leaflet-control-bg-dark) !important; /* Use variable */
+}
+
+/* LEAFLET MAP ICONS CSS */
+.leaflet-control-zoom-in, .leaflet-control-zoom-out, .leaflet-draw-draw-polyline, .leaflet-draw-draw-polygon, .leaflet-draw-draw-rectangle, .leaflet-draw-draw-circle, .leaflet-draw-draw-marker, .leaflet-draw-draw-circlemarker, .leaflet-draw-edit-edit, .leaflet-draw-edit-remove {
+  background-color: var(--leaflet-control-bg-dark) !important; /* Use variable */
+  color: var(--leaflet-control-color-dark) !important; /* Use variable */
+  border: none !important;
+  font-size: 18px !important;
+  line-height: 30px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.leaflet-draw-draw-rectangle {
+  background-image: url('rectangle_darkmode_svg.svg'); /* Replace with the path to your new icon */
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+/* LEAFLET MAP ICONS CSS END */
+
+
+
+.leaflet-draw-draw-marker {
+display: none !important;
+}
+
+.leaflet-draw-draw-polyline {
+display: none !important;
+}
+
+.leaflet-draw-draw-circlemarker {
+display: none !important;
+}
+
+/* LEAFLET MAP ICON COLOR CHANGE WHEN DISABLED CSS START */
+.leaflet-disabled {
+  background-color: var(--leaflet-disabled-bg) !important;
+  color: var(--leaflet-disabled-color) !important;
+}
+
+/* LEAFLET MAP ICON COLOR CHANGE WHEN DISABLED CSS END */
+
+
+
+/* LEAFLET MAP ICON BORDER REMOVAL CSS START */
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+  border-top: none !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+}
+/* LEAFLET MAP ICON BORDER REMOVAL CSS END */
+
+
+
+/* LEAFLET MAP ICON MISC CSS START */
+.leaflet-bar > a:first-child {
+  border-top-left-radius: 30px !important;
+  border-top-right-radius: 30px !important;
+}
+
+.leaflet-bar > a:last-child {
+  border-bottom-left-radius: 30px !important;
+  border-bottom-right-radius: 30px !important;
+}
+
+
+.leaflet-control-layers-toggle {
+    font-size: 30px;
+    line-height: 24px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 30px;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 36px;
+    height: 36px;
+}
+
+.leaflet-control-layers {
+    border-radius: 30px;
+    opacity: 1;
+}
+
+.leaflet-control-layers::before {
+    content: "";
+    background-image: var(--leaflet-control-layers-before-bg);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 30px;
+    background-size: cover;
+    opacity: 1;
+}
+
+.leaflet-control-layers-expanded {
+    background-color: var(--leaflet-control-layers-expanded-bg) !important;
+    color: var(--leaflet-control-layers-expanded-text) !important;
+}
+
+
+/* Hide the background image when the control layers menu is expanded */
+.leaflet-control-layers-expanded::before {
+    content: none !important;
+}
+
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+    color: var(--leaflet-control-layers-list-text) !important;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 10px;  /* Added padding here */
+}
+
+.leaflet-control-layers-selector {
+    color: var(--leaflet-control-layers-selector-text) !important;
+    margin: 2px !important;
+}
+
+.leaflet-popup .leaflet-popup-content-wrapper .leaflet-popup-content {
+    font-size: 25px !important;
+}
+
+
+/* Your existing rules for .leaflet-control-layers and .leaflet-top leaflet-right had typos, corrected below */
+.leaflet-control-layers.leaflet-control {
+    border-radius: 30px;
+}
+
+.leaflet-top.leaflet-right {
+    border-radius: 50px;
+}
+
+    .leaflet-popup .shape-image {
+        max-width: 512px;
+        max-height: 512px;
+        display: block;
+        margin: 0 auto;
+    }
+	
+	
+
+    .leaflet-popup-content-wrapper {
+    background-color: var(--popup-bg-color) !important;
+    color: var(--popup-text-color) !important;
+    border-radius: 30px !important;
+	width: auto !important;
+}
+
+   .leaflet-popup-content {
+    color: var(--popup-text-color) !important;
+}
+
+.leaflet-popup-tip {
+    display: block; /* Optional: hides the tip arrow for a cleaner look */
+    background-color: var(--popup-bg-color) !important;
+}
+	
+	  .leaflet-popup-close-button {
+        display: none; /* Optional: hides the tip arrow for a cleaner look */
+
+    }
+.leaflet-popup.image-popup .leaflet-popup-tip {
+    display: none;
+}	
+  
+
+   #shape-note {
+        border-radius: 10px;
+		border:none;
+        display: block;
+		color: #111111;
+        width: 100%;
+        box-sizing: border-box;
+        max-height: 200px;
+		height: 75px;
+		padding: 5px;
+		max-width: 100%;
+        margin-bottom: -25px; /* Adjust this value as needed to reduce gap */
+		font-size: 15px; /* Set font size to 15px */
+        font-family: 'Roboto', sans-serif; /* Set font family to Roboto */
+    }
+
+
+#shape-note::-webkit-input-placeholder { /* Chrome, Opera, Safari */
+    color: #111111;
+    opacity: 1; /* Override any default opacity */
+}
+
+#shape-note:-ms-input-placeholder { /* Internet Explorer 10-11 */
+    color: #111111;
+    opacity: 1; /* Override any default opacity */
+}
+
+#shape-note::-ms-input-placeholder { /* Microsoft Edge */
+    color: #111111;
+    opacity: 1; /* Override any default opacity */
+}
+
+#shape-note::placeholder { /* Most modern browsers */
+    color: #111111;
+    opacity: 1; /* Override any default opacity */
+}
+
+    #save-note, #cancel-note {
+        background-color: #4CAF50; /* Green for save, red for cancel */
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s ease-in-out;
+        margin-top: 0; /* Remove top margin to reduce gap */
+    }
+
+    #cancel-note {
+        background-color: #B71C1C;
+        margin-left: 50px; /* Adjust this value as needed */
+    }
+
+    #save-note:hover {
+        background-color: #388E3C; /* Darker green for hover effect */
+    }
+
+    #cancel-note:hover {
+        background-color: #D32F2F; /* Darker red for hover effect */
+    }
+
+/* LEAFLET MAP ICON MISC CSS END */
+
+
+
+/* SMALL OPTIONS MENU TOP BUTTON CSS START */
+/* This CSS makes sure the "smalloptionsmenutop" entity is resized properly */
+ .smalloptionsmenutop {
+      display: flex;
+      justify-content: space-between;
+    }
+    .left-container, .right-container {
+      display: flex;
+      align-items: center;
+    }
+    .pinlist-div, .info-div, .lightswitch-div, .key-div {
+      margin: 0 3px;
+    }
+}
+
+  
+    /* Individual icon divs */
+    .lightswitch-div, .key-div, .pinlist-div, .info-div {
+      flex-direction: row;
+    }
+
+    /* Make the containers hidden when screen width is less than 1271px */
+    @media (max-width: 1271px) and (min-width: 768px) {
+	  .left-container, .right-container, .togglebuttoncontainer {
+		display: in-line;
+	  }
+	}
+	
+	@media (min-width: 768px) and (max-width: 1271px) {
+    #keyDiv img, 
+    #infoDiv img, 
+    #pinlistdiv img, 
+    #lightswitchDiv img {
+        max-width: 30px !important; /* Set the max-width to 30px for tablet screens */
+        height: auto; /* Maintain the aspect ratio of the images */
+        border-radius: 30px; /* Maintain the border radius */
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1271px) {
+    .button-s {
+        max-height: 30px !important; /* Set the max height to 30px for tablet screens */
+        padding: 10px; /* Adjust padding as needed */
+    }
+  .button-s h3 {
+        font-size: 16px; /* Adjust the font size as needed for tablet screens */
+        margin: 0; /* You might want to reset any default margin */
+    }
+}
+
+		/* Icon scaler */
+        #keyDiv {
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Vertically center the image */
+        }
+
+        #keyDiv img {
+            max-width: 40px;  /* Adjust size as needed */
+            height: auto;
+            border-radius: 30px;
+            margin: 0;
+        }
+		
+        #infoDiv {
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Vertically center the image */
+        }
+
+        #infoDiv img {
+            max-width: 40px;  /* Adjust size as needed */
+            height: auto;
+            border-radius: 30px;
+            margin: 0;
+        }
+		
+        #pinlistdiv {
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Vertically center the image */
+        }
+
+        #pinlistdiv img {
+            max-width: 40px;  /* Adjust size as needed */
+            height: auto;
+            border-radius: 30px;
+            margin: 0;
+        }
+		
+        #lightswitchDiv {
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center; /* Vertically center the image */
+        }
+
+        #lightswitchDiv img {
+            max-width: 40px;  /* Adjust size as needed */
+            height: auto;
+            border-radius: 30px;
+            margin: 0;
+        }
+/* SMALL OPTIONS MENU BUTTON CSS END */
+
+
+/* BUTTON MAIN UNIVERSAL CSS START */
+.button-u {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 14px 0;
+    padding: 15px;
+    box-sizing: border-box;
+    cursor: pointer;
+    text-decoration: none;
+	    white-space: normal;
+    border-radius: 30px;
+    transition: background-color 0.2s ease-in-out;
+    color: white;
+    text-align: center;
+    line-height: 1;
+    max-height: 40px;
+    width: 100%;
+}
+/* BUTTON MAIN UNIVERSAL CSS END */
+
+
+
+/* BUTTON SMALL SIDEBAR CSS START */
+/* This button is used mainly for Wie funktionierts. */
+.button-s {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 14px 0;
+    padding: 15px;
+    box-sizing: border-box;
+    cursor: pointer;
+    text-decoration: none;
+	    white-space: normal;
+    border-radius: 30px;
+    background-color: var(--button-bg-color); /* Use a general variable */
+    transition: background-color 0.2s ease-in-out;
+    color: white;
+    text-align: center;
+    line-height: 1;
+    max-height: 40px;
+    width: 100%;
+}
+/* BUTTON SMALL SIDEBAR CSS END */
+  /* HOVER AND SELECTED BUTTON EFFECT CSS START */
+        /* Hover effect */
+        .button-s:hover,
+        .categorybutton:hover,
+        .save-note:hover,
+        .key-div:hover,
+        .pinlist-div:hover,
+        .info-div:hover,
+        .lightswitch-div:hover {
+             filter: brightness(115%) !important;
+    outline: 3px solid var(--outline-hover-color) !important; /* Use custom property */
+}
+
+
+/* INFO-POPUP CONTAINER CSS START */
+/* Takes care of how big the info-popup is gonna be. This popup shows information about each element on the website. */
+    #info-popup {
+        padding: 20px;
+        max-width: 500px;
+        font-size: 14px;
+        z-index: 1000;  /* Make sure the popup appears above the map */
+     background-color: var(--popup-bg-color);
+    color: var(--popup-text-color);
+}
+#info-popup.admin-pindelete-popup {
+    max-width: 300px;
+}
+	
+	#info-popup.uigif-counter-popup {
+    max-width: 320px;
+}
+
+#info-popup.uigif-counter-popup img {
+    border-radius: 30px;
+}
+
+#info-popup.admin-pinresize-popup {
+ max-width: 300px;
+}
+/* INFO-POPUP CONTAINER CSS END */
+
+.count-pill {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 30px;
+    background-color: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.color-circle {
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 10px; /* Adjust as needed */
+}
+
+.category-symbol {
+    height: 25px;
+    width: 25px;
+    margin-right: 10px; /* Adjust as needed */
+}
+
+#counter-pill {
+    position: absolute;
+    top: 4.5%;
+    left: 50%;
+    outline: 2px solid rgba(0,0,0,0.2);
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 30px;
+    padding: 8px 12px; /* Increased left and right padding */
+    z-index: 1000;
+    font-size: 25px;
+    font-weight: bold;
+    gap: 5px;
+   background-color: var(--counter-pill-bg-color);
+    color: var(--counter-pill-text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80%; /* Increased maximum width */
+}
+
+.counter-color, .marker-btn {
+    height: 25px; /* Adjusted to match desktop version */
+    width: 25px; /* Adjusted to match desktop version */
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 2.5px; /* Consistent space after the circle */
+	    margin-left: 2.5px; /* Consistent space after the circle */
+
+}
+
+#color-counters, #category-counters {
+    display: flex;
+    padding: 0;
+    margin: 0;
+    gap: 5px;
+}
+.iframe-container {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; /* Aspect ratio: 16/9 */
+    height: 0;
+}
+
+.iframe-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#color-counters li, #category-counters li {
+    flex-grow: 1; /* Allow each item to grow to fill available space */
+    flex-shrink: 1; /* Allow each item to shrink if needed */
+    display: flex; /* Make the list items flex containers */
+    justify-content: center; /* Center the content horizontally */
+    align-items: center; /* Center the content vertically */
+    max-height: 100%; /* Ensure items do not exceed the pill's height */
+}
+
+/* Adjust the size of the content (icons, text, etc.) inside the list items */
+#color-counters li > *, #category-counters li > * {
+    max-height: 100%; /* Adjusted to allow full height */
+    max-width: 100%; /* Adjusted to allow full width */
+    font-size: 25px; /* Consistent font size with the pill */
+}
+
+
+.hidden {
+    display: none !important; // !important to override any other display property
+}
+#popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 30px;
+    background-color: rgba(0, 0, 0, 0.5); /* Overlay background */
+    z-index: 1000; /* Ensure it's above other content */
+}
+
+#popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: calc(100% - 20px); /* Max width, minus the gap */
+    max-height: calc(100% - 20px); /* Max height, minus the gap */
+    width: 400px;
+    height: 300px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1001; /* Above the overlay */
+    overflow: auto; /* Add scroll for small screens */
+}
+
+#popup-content button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+#close-popup {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 0.5em;
+    border: none;
+    background-color: transparent;
+    font-size: 1em;
+    cursor: pointer;
+    z-index: 1002;
+}
+
+@media screen and (max-width: 420px) {
+    #popup-content {
+        width: auto; /* Adjust width for very small screens */
+    }
+}
+
+.dismiss-button {
+    border-radius: 30px;
+	margin-right: 50px;
+    /* Add other styling as needed, e.g., padding, border, background-color, etc. */
+}
+
+#popup-text .ql-align-center {
+  text-align: center;
+}
+
+#popup-text .ql-font-serif {
+  font-family: 'Times New Roman', serif;
+}
+
+#popup-text .ql-align-right {
+  text-align: right;
+}
+
+#popup-text .ql-align-justify {
+  text-align: justify;
+}
+
+#popup-text .ql-align-center {
+  text-align: center;
+}
+
+#popup-text img {
+  max-width: 95%;  /* Ensures the image does not exceed the width of the popup */
+  height: auto;     /* Maintains the aspect ratio of the image */
+  display: block;   /* Allows margin auto to work for horizontal centering */
+  margin: 0 auto;
+  border-radius: 30px; /* Centers the image horizontally */
+}
+
+/* Hide all cursors inside the map when marker drawing is active */
+.no-cursor .leaflet-container,
+.no-cursor .leaflet-container * {
+    cursor: none !important;
+}
+
+/* Hide the Leaflet draw tooltip */
+.leaflet-draw-tooltip {
+    display: none !important;
+}
+
+:root {
+    /* Define default dark mode colors */
+    --counter-pill-bg-color: #111111;
+    --counter-pill-text-color: white;
+	--background-color: #111111; /* Dark mode background */
+    --text-color: white; /* Dark mode text */
+    --sidebar-bg: #111111; /* Dark mode sidebar background */
+    --counter-pill-bg-color: #111111; /* Dark mode counter pill background */
+    --counter-pill-text-color: white; /* Dark mode counter pill text */
+	--leaflet-control-bg-dark: #3a3a3a; /* Dark mode background color */
+	--leaflet-control-color-dark: white; /* Dark mode symbol color */
+	    --button-close-color-dark: white; /* Color for dark mode */
+    --button-close-color-light: black; /* Color for light mode */
+	 --outline-hover-color-dark: white; /* Outline color for dark mode */
+    --outline-hover-color-light: black; /* Outline color for light mode */
+  --popup-bg-color-light: rgba(244, 244, 237, 1);
+    --popup-text-color-light: black;
+    --popup-bg-color-dark: rgba(17, 17, 17, 1);
+    --popup-text-color-dark: white;
+}
+
+.light-mode {
+    /* Define light mode colors */
+    --counter-pill-bg-color: #f3f4f8;
+    --counter-pill-text-color: black;
+	--background-color: #ffffff; /* Light mode background */
+    --text-color: black; /* Light mode text */
+    --sidebar-bg: #EDF2F4; /* Light mode sidebar background */
+    --counter-pill-bg-color: #f3f4f8; /* Light mode counter pill background */
+    --counter-pill-text-color: black; /* Light mode counter pill text */
+	--leaflet-control-bg-light: #f3f4f8; /* Light mode background color */
+	--leaflet-control-color-light: black; /* Light mode symbol color */
+}
+
+ .leaflet-draw-draw-polyline, .leaflet-draw-draw-polygon, .leaflet-draw-draw-rectangle, .leaflet-draw-draw-circle, .leaflet-draw-draw-marker, .leaflet-draw-draw-circlemarker, .leaflet-draw-edit-edit, .leaflet-draw-section {
+  visibility: hidden; /* Hide the icons */
+}
+/* Tool selection popup styling */
+#tool-selection-popup {
+    position: absolute;
+    left: 50%;
+	bottom: 1.5%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(211, 211, 211, 0.4);
+    border-radius: 35px;
+    padding: 10px;
+    gap: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.05);
+    flex-wrap: nowrap;
+    max-width: 50%;
+    z-index: 2000000;
+}
+
+.container {
+    position: relative; /* Ensures that child absolute elements are positioned relative to this */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1; /* Ensures the container is above other content */
+}
+
+
+
+/* Styles for tool buttons inside the popup */
+.tool-btn {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tool-btn img {
+    display: block;
+    width: auto;
+    height: 30px;
+	border-radius: 10px;
+    transition: transform 0.2s, outline 0.2s; /* Added transition for outline */
+}
+
+.tool-btn:hover img {
+    transform: scale(1.1);
+    outline: var(--tool-btn-hover-outline);
+}
+
+.tool-btn.selected img {
+    background-color: rgba(255, 255, 255, 0.3);
+    outline: var(--tool-btn-selected-outline);
+}
+
+.filter-container {
+    display: flex;
+    justify-content: center; /* Center items horizontally */
+    flex-wrap: wrap; /* Allow items to wrap onto the next line */
+    gap: 10px; /* Optional: add some space between elements */
+}
+
+/* If elements wrap, they should take the full width of the line */
+.filter-container > * {
+    flex-basis: 100%;
+}
+.type-filter {
+margin-bottom: 50px;
+}
+
+#mobileCategoryOverlay {
+    display: none;
+    position: fixed; /* Changed from absolute to fixed */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 2147483647; /* Max value */
+    overflow: auto;
+    justify-content: center;
+    align-items: center;
+}
+
+        /* Responsive design */
+        @media screen and (min-width: 768px) {
+            #mobileCategoryOverlay {
+                display: none; /* Hide on non-mobile devices */
+            }
+        }
+		
+.categorybutton {
+    opacity: 0;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    max-width: 90%;
+    height: auto;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    text-align: center;
+    border: none;
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 20px 20px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+
+    .categorybutton:hover {
+        filter: brightness(115%);
+        outline: 3px solid white;
+        outline-offset: -3px;
+    }
+
+    .categorybutton.selected {
+        filter: brightness(115%);
+        outline: 5px solid white;
+        outline-offset: -5px;
+    }
+     
+        .categorybutton h3 {
+            margin: 0; /* Removes any default margin */
+            color: white;
+        }
+		
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+#search-filter-section {
+    display: none;
+	
+	      #admin-map {
+          display:none !Important;
+			
+        }
+ </style>
+<style>
+
+/* Mobile Styles */
+@media (max-width: 767px) {
+    body, html {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+	
+	#tool-selection-popup {
+	max-width: 70%;
+	margin-top: -2.5px !important;
+			margin-bottom: 7.5px;
+	}
+
+    #map {
+        position: absolute;
+        top: calc(9vh + 35px); /* Estimate based on viewport height and gap */
+        bottom: 165px; /* Adjust for the fixed height of the sidebar (150px + 15px gap) */
+        left: 15px;
+        right: 15px;
+        border-radius: 30px;
+        margin-bottom: 15px;
+		margin-top: 7.5px !important;
+		z-index: 500!important;
+    }
+
+    #sidebar {
+        position: fixed;
+        height: 150px;
+        bottom: 0;
+        left: 15px !important;
+        right: 15px !important;
+        border-radius: 30px;
+        margin-bottom: 15px;
+        overflow: hidden;
+		width: auto;
+		background: var(--sidebar-bg); /* Use variable for background */
+    }
+
+#sidebar-mobileheader {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    margin-bottom: 15px !important;
+    border-radius: 30px;
+    padding-right: 15px;
+    padding-left: 15px;
+    padding: 7.5px;
+    max-height: 81px;
+    z-index: 500!important; /* High z-index */
+    background: var(--sidebar-bg); /* Use variable for background */
+    width: auto; /* Fixed width for testing */
+    display: block !important; /* Force display */
+}
+
+#sidebar-mobileheader img {
+    display: block; /* Use block display for the image */
+    max-width: 100%; /* Limit image width to container width */
+    max-height: 64px; /* Maximum height for the image */
+    height: auto; /* Adjust height automatically */
+    width: auto; /* Adjust width automatically */
+    margin: auto; /* Center the image if needed */
+    object-fit: contain; /* Ensure aspect ratio is maintained without stretching */
+}
+
+
+    .hide-on-mobile {
+        display: none !important;
+    }
+
+    .appear-on-mobile {
+        display: block !important;
+    }
+}
+
+@media (max-width: 768px) {
+    #counter-pill {
+        padding: 8px 15px; /* Increased left and right padding */
+        font-size: 3vw;
+        top: 5.5%;
+        max-width: 60%;
+    }
+	
+	.counter-color {
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 1.5px; /* Reduced space after the circle */
+	    margin-left: 1.5px; /* Reduced space after the circle */
+
+}
+
+
+
+    #color-counters, #category-counters {
+        display: flex;
+        padding: 0;
+        margin: 0;
+        gap: 5px;
+    }
+
+    #color-counters li, #category-counters li {
+        flex-grow: 1; /* Allow each item to grow to fill available space */
+        flex-shrink: 1; /* Allow each item to shrink if needed */
+        display: flex; /* Make the list items flex containers */
+        justify-content: center; /* Center the content horizontally */
+        align-items: center; /* Center the content vertically */
+        max-height: 100%; /* Ensure items do not exceed the pill's height */
+    }
+
+    /* Adjust the size of the content (icons, text, etc.) inside the list items */
+    #color-counters li > *, #category-counters li > * {
+        max-height: 50%; /* Ensure content does not exceed the list item's height */
+        max-width: 50%; /* Ensure content does not exceed the list item's width */
+        font-size: 2.5vw; /* Responsive font size for the content */
+    }
+}
+
+
+/* Media query for tablet devices */
+@media (min-width: 768px) and (max-width: 1024px) {
+    #map {
+        left: 15px; /* Consistent margin from the left */
+        right: calc(40% + 0px); /* Adjusting for sidebar width and right margin */
+        top: 15px; /* Consistent margin from the top */
+        bottom: 15px; /* Consistent margin from the bottom */
+        border-radius: 30px; /* Maintain border radius */
+    }
+	
+
+.counter-color, .marker-btn {
+    height: 25px; /* Adjusted to match desktop version */
+    width: 25px; /* Adjusted to match desktop version */
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px; /* Consistent space after the circle */
+}
+
+
+    #sidebar {
+        width: calc(40% - 30px); /* Sidebar takes up 40% width minus the total horizontal margins */
+        right: 15px; /* Consistent margin from the right */
+        top: 15px; /* Consistent margin from the top */
+        bottom: 15px; /* Consistent margin from the bottom */
+        padding: 10px; /* Maintain padding */
+        border-radius: 30px; /* Maintain border radius */
+		background: var(--sidebar-bg); /* Use variable for background */
+    }
+	
+}
+
+/* Mobile view */
+@media screen and (max-width: 768px) {
+    #search-filter-section {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 2147483647;
+        overflow: auto;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .filter-container {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .key-div {
+        display: none !important;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .pinlist-div {
+        display: none !important;
+    }
+}
+ </style>
+<body>
+    <div id="mobileCategoryOverlay"></div>
+
+<div id="sidebar-mobileheader" style="display: none;">
+<img class="logo-img appear-on-mobile" src="static/logo_long.png" style="display: none; max-width: 97%; height: auto; display: block; margin-bottom: 0px; border-radius: 0px;"/>
+<h3 class="appear-on-mobiledisabled resistant-h3" style="display: none; color: white; text-align: center; margin-top: 5px;">
+    Wie stehen Sie zu den Orten in Ihrer Gemeinde?
+   </h3>
+<h3 class="appear-on-mobiledisabled resistant-h3" style="display: none; color: white; text-align: center; margin-top: -12px; margin-bottom: 7px">
+    Lassen Sie es uns auf dieser Karte wissen!
+   </h3>
+</div>
+<div id="map">
+<!-- Inside the map div -->
+<div id="counter-pill">
+<ul id="color-counters" style="list-style: none; display: flex; padding: 0; margin: 0;">
+<!-- Color circles will be inserted here -->
+</ul>
+</div>
+<div id="tool-selection-popup" style="display:none;">
+  <button id="marker-btn" class="tool-btn" onclick="selectTool('.leaflet-draw-draw-marker', this)">
+    <img src="/static/popupmenu_marker_darkmode.png" alt="Marker">
+  </button>
+  <button id="rectangle-btn" class="tool-btn" onclick="selectTool('.leaflet-draw-draw-rectangle', this)">
+    <img src="/static/popupmenu_rectangle_darkmode.png" alt="Rectangle">
+  </button>
+  <button id="circle-btn" class="tool-btn" onclick="selectTool('.leaflet-draw-draw-circle', this)">
+    <img src="/static/popupmenu_circle_darkmode.png" alt="Circle">
+  </button>
+  <button id="polygon-btn" class="tool-btn" onclick="selectTool('.leaflet-draw-draw-polygon', this)">
+    <img src="/static/popupmenu_polygon_darkmode.png" alt="Polygon">
+  </button>
+</div>
+
+</div>
+<?php MAP END ?>
+<?php SIDEBAR BODY START ?>
+<div id="sidebar">
+<?php LOGO START ?>
+<img class="logo-img hide-on-mobile" src="static/logo_long.png" style="max-width: 97%; height: auto; display: block; margin-bottom: 7px; border-radius: 0px;"/>
+<?php LOGO END ?>
+<?php WEBSITE DESCRIPTION START ?>
+<h3 class="hide-on-mobile resistant-h3" style="text-align: center; margin-top: 5px;">
+    Wie stehen Sie zu den Orten in Ihrer Gemeinde?
+</h3>
+<h3 class="hide-on-mobile resistant-h3" style="text-align: center; margin-top: -12px; margin-bottom: 7px">
+    Lassen Sie es uns auf dieser Karte wissen!
+</h3>
+
+<?php WEBSITE DESCRIPTION END ?>
+<!-- Popup HTML Structure -->
+
+
+<!-- SMALL OPTIONS MENU TOP START -->
+<div class="smalloptionsmenutop" style="display: flex; align-items: center; justify-content: center;">
+<div class="left-container">
+<!-- This button shows the user a list of existing pins -->
+<div class="pinlist-div" id="pinlistdiv" onclick="toggleSearchFilter()" style="border-radius: 30px;">
+<img src="static/pinlisticon.png"/>
+</div>
+<!-- This button shows the user a list of existing pins -->
+<div class="info-div" id="infoDiv" style="border-radius: 30px; margin-right: 5px; margin-left: 5px;">
+<img src="static/infoicon.png"/>
+</div>
+</div>
+<div class="button-s" id="buttonS" onclick="addAndRemoveClass()" style="width: auto; height: auto; padding: 15px;">
+<h3>
+      Wie funktioniert's?
+     </h3>
+</div>
+<div class="right-container">
+<div class="lightswitch-div" id="lightswitchDiv" style="border-radius: 30px; margin-left: 5px;">
+<img src="static/sunicon.png"/>
+</div>
+<div class="key-div" id="keyDiv" style="border-radius: 30px; margin-left: 5px;">
+<img src="static/keyicon.png"/>
+</div>
+</div>
+</div>
+<!-- SMALL OPTIONS MENU TOP END -->
+<!-- Search and Filter Section -->
+<div id="search-filter-section" style="display: none; max-height: 350px; overflow-y: auto; max-width: 97%; margin-left:auto; margin-bottom: 0; margin-top: 3px; margin-right: auto;">
+    <div class="filter-container">
+        <input id="search-box" style="border-radius: 30px; padding: 5px; border: 1.5px solid black;" oninput="filterObjects()" placeholder="Notiztext..." type="text" />
+        <select id="color-filter" style="border-radius: 30px; padding: 5px; border: 1.5px solid black;" onchange="filterObjects()">
+            <option style="border-radius: 30px; padding: 5px;" value="">
+                Alle Kategorien
+            </option>
+            <!-- Dynamically populate color options here -->
+        </select>
+        <select id="type-filter" style="border-radius: 30px; padding: 5px; margin-bottom: 7.5px; border: 1.5px solid black;" onchange="filterObjects()">
+            <option value="">
+                Alle Markierungsarten
+            </option>
+			<option value="marker">
+                Marker
+            </option>
+			<option value="circle">
+                Kreis
+            </option>
+            <option value="rectangle">
+                Rechteck
+            </option>
+            <option value="polygon">
+                Polygon
+            </option>
+            <!-- Add more object types as needed -->
+        </select>
+    </div>
+
+    <!-- Object List Section -->
+    <div id="object-list" style="position: relative;" class="custom-scrollbar">
+        <!-- Dynamically populated object list will go here -->
+        <!-- Sidebar -->
+    </div>
+
+</div>
+<?php CITY LOGO START ?>
+<img class="hide-on-mobile resistant-image" id="overlay-image" src="static/overlay.jpg" style="max-width: 97%; height: auto; display: block; margin-left:auto; margin-right:auto; margin-top: 3px; margin-bottom: 0px; border-radius: 30px; max-height: 368px;"/>
+<?php CITY LOGO END ?>
+
+
+<svg width="0" height="0" id="hatch-patterns">
+    <defs>
+        <pattern id="diagonalHatch" width="4" height="4" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <path d="M-1,1 l2,-2
+                     M0,4 l4,-4
+                     M3,5 l2,-2" stroke="gray" stroke-width="1"/>
+        </pattern>
+    </defs>
+</svg>
+
+<?php ADMIN TOOLS (OTP PROTECTED) START // Categories here are dynamically generated from the "static/categories.html" file. Additional categories can be added or removed by editing "static/categories.html".?>
+<div class="menu-admintools" id="dynamicgeneration-admintools">
+</div>
+<?php ADMIN TOOLS (OTP PROTECTED) END // Categories here are dynamically generated from the "static/categories.html" file. Additional categories can be added or removed by editing "static/categories.html".?>
+<?php CATEGORIES PULL START ?>
+<div class="container">
+
+
+    <iframe id="categories-iframe" frameborder="0" src="/categories" style="width:100%; height:100%; border:none;"></iframe>
+	
+
+
+</div>
+<?php CATEGORIES PULL END ?>
+</div>
+<?php SIDEBAR BODY END ?>
+
+<script>
+// Initialize the map
+var map = L.map('map').setView([48.4102, 15.6022], 15);
+var currentDrawnLayer = null;
+var selectedToolButton = null;
+
+// Calculate the offset for boundaries
+var horizontalOffset = 1125; // 1.125 km on each side, total 2.25 km
+var verticalOffset = 594; // 0.59375 km on each side, total 1.1875 km
+
+// Define the boundaries
+var centerPoint = map.project([48.4102, 15.6022], map.getZoom());
+var southWest = map.unproject(centerPoint.subtract([horizontalOffset, verticalOffset]), map.getZoom());
+var northEast = map.unproject(centerPoint.add([horizontalOffset, verticalOffset]), map.getZoom());
+var bounds = L.latLngBounds(southWest, northEast);
+
+
+// Calculate extended bounds for 10 km buffer
+var extendedHorizontalOffset = horizontalOffset + 1000; // Add 10 km
+var extendedVerticalOffset = verticalOffset + 1000; // Add 10 km
+var extendedSouthWest = map.unproject(centerPoint.subtract([extendedHorizontalOffset, extendedVerticalOffset]), map.getZoom());
+var extendedNorthEast = map.unproject(centerPoint.add([extendedHorizontalOffset, extendedVerticalOffset]), map.getZoom());
+var extendedBounds = L.latLngBounds(extendedSouthWest, extendedNorthEast);
+
+// Set the max bounds to restrict dragging beyond 10 km from the original boundary
+map.setMaxBounds(extendedBounds);
+
+// Debugging: Log when the user reaches the edge of the draggable area
+map.on('drag', function() {
+    if (!extendedBounds.contains(map.getCenter())) {
+        console.log("Reached the edge of the draggable area");
+    }
+});
+
+// Define the coordinates for a very large outer rectangle
+var outerBounds = [
+    L.latLng(-90, -180),
+    L.latLng(90, -180),
+    L.latLng(90, 180),
+    L.latLng(-90, 180),
+    L.latLng(-90, -180)
+];
+        console.log("Boundaries defined:", bounds);
+
+
+// Define the coordinates for the inner rectangle (the boundary)
+var innerBounds = [
+    bounds.getSouthWest(),
+    bounds.getNorthWest(),
+    bounds.getNorthEast(),
+    bounds.getSouthEast(),
+    bounds.getSouthWest()
+];
+
+// Create a polygon with a hole (inverted polygon)
+var invertedPolygon = L.polygon([outerBounds, innerBounds], {color: 'grey', fillColor: 'grey', fillOpacity: 0.5}).addTo(map);
+
+// Draw the boundary rectangle
+L.rectangle(bounds, {color: "#808080", weight: 2, fill: false}).addTo(map);
+        console.log("Boundary rectangle drawn");
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            minZoom: 15,
+            attribution: '| © OpenStreetMap contributors'
+        }).addTo(map);
+		
+		// Map layers
+var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    minZoom: 15,
+    attribution: '....'
+});
+
+var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    minZoom: 15,
+    attribution: '&copy; Esri &mdash; Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, GIS User Community'
+});
+
+var thunderforestLayers = {
+    "Atlas": L.tileLayer('https://tile.thunderforest.com/atlas/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        minZoom: 15,
+        attribution: 'Tiles © Thunderforest, ....'
+    }),
+    "Neighbourhood": L.tileLayer('https://tile.thunderforest.com/neighbourhood/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        minZoom: 15,
+        attribution: 'Tiles © Thunderforest, ....'
+    }),
+    "Transport": L.tileLayer('https://tile.thunderforest.com/transport/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        minZoom: 15,
+        attribution: 'Tiles © Thunderforest, ....'
+    }),
+    "Cycle": L.tileLayer('https://tile.thunderforest.com/cycle/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        minZoom: 15,
+        attribution: 'Tiles © Thunderforest, ....'
+    }),
+    "Mobile_Atlas": L.tileLayer('https://tile.thunderforest.com/mobile-atlas/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        minZoom: 15,
+        attribution: 'Tiles © Thunderforest, ....'
+    }),
+    "Pioneer": L.tileLayer('https://tile.thunderforest.com/pioneer/{z}/{x}/{y}.png?apikey=5c57f95ca93348f1a37f6572742a5b48', {
+        minZoom: 15,
+        attribution: 'Tiles © Thunderforest, ....'
+    }),
+};
+
+
+// basemap.at layers
+var basemapLayers = {
+    "GeolandBasemap": L.tileLayer('http://maps.wien.gv.at/basemap/geolandbasemap/normal/google3857/{z}/{y}/{x}.png', {
+        minZoom: 15,
+        attribution: 'Basemap.at, ....'
+    }),
+    "BmapGrau": L.tileLayer('http://maps.wien.gv.at/basemap/bmapgrau/normal/google3857/{z}/{y}/{x}.png', {
+        minZoom: 15,
+        attribution: 'Basemap.at, ....'
+    })
+};
+
+
+var baseLayers = {
+    "Standardkarte": osmLayer,
+    "Satellit": satelliteLayer,
+    "Klar": thunderforestLayers.Atlas,
+    "Öffi": thunderforestLayers.Transport,
+    "Radwege": thunderforestLayers.Cycle,
+	"Grau": basemapLayers.BmapGrau,
+	"Kontrast": thunderforestLayers.Mobile_Atlas,
+    "Papyrus": thunderforestLayers.Pioneer,
+};
+        // Add default layer to map
+        baseLayers["Standardkarte"].addTo(map);
+
+
+map.on('baselayerchange', function(e) {
+    console.log('Map base layer switched to:', e.name);
+});
+
+function createIcon(pinSize, outlineSize, strokeColor) {
+    var svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="${pinSize}" height="${pinSize}" viewBox="0 0 ${pinSize} ${pinSize}">
+        <circle cx="${pinSize / 2}" cy="${pinSize / 2}" r="${pinSize / 4}" />
+        <circle cx="${pinSize / 2}" cy="${pinSize / 2}" r="${pinSize / 4}" stroke="${strokeColor}" stroke-width="${outlineSize}" fill="none" stroke-opacity="0.5" />
+    </svg>`;
+
+    console.log("SVG Icon:", svgIcon);
+
+    return L.icon({
+        iconUrl: `data:image/svg+xml;base64,${btoa(svgIcon)}`,
+        iconSize: [pinSize, pinSize],
+        iconAnchor: [pinSize / 2, pinSize / 2],
+        popupAnchor: [0, -pinSize / 2]
+    });
+}
+
+
+
+// Define a custom marker icon
+var customMarkerIcon = L.divIcon({
+    className: 'custom-marker-icon',
+    html: '<div style="width: 24px; height: 24px; border-radius: 50%; background-color: YOUR_CATEGORY_COLOR;"></div>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 12] // Centers the icon
+});
+
+
+// Global variable to store the current cursor icon color
+var customCursorIcon;
+
+var currentCursorColor = '';
+
+// Function to create the custom cursor icon
+function createCustomCursorIcon(color) {
+    // Remove the existing custom cursor icon if it exists
+    removeCustomCursorIcon();
+
+    // Create a new custom cursor icon with the specified color
+    customCursorIcon = L.DomUtil.create('div', 'custom-cursor-icon');
+    customCursorIcon.innerHTML = '<div style="width: 24px; height: 24px; border-radius: 50%; background-color: ' + color + ';"></div>';
+    customCursorIcon.style.position = 'absolute';
+    customCursorIcon.style.pointerEvents = 'none';
+    customCursorIcon.style.zIndex = '1000'; // Set high z-index
+    document.body.appendChild(customCursorIcon);
+
+    // Update the current cursor color
+    currentCursorColor = color;
+}
+
+
+// Function to create or update the custom cursor icon
+function createOrUpdateCustomCursorIcon(color) {
+    // Remove the existing custom cursor icon if it exists
+    removeCustomCursorIcon();
+
+    // Create a new custom cursor icon with the specified color
+    customCursorIcon = L.DomUtil.create('div', 'custom-cursor-icon');
+    customCursorIcon.innerHTML = '<div style="width: 24px; height: 24px; border-radius: 50%; background-color: ' + color + ';"></div>';
+    customCursorIcon.style.position = 'absolute';
+    customCursorIcon.style.pointerEvents = 'none';
+    customCursorIcon.style.zIndex = '1000'; // Set high z-index
+    document.body.appendChild(customCursorIcon);
+
+    // Update the current cursor color
+    currentCursorColor = color;
+}
+
+// Event listener for when the category changes
+function onCategoryChange(newCategory) {
+    // Check if the new category is different from the current cursor color
+    if (newCategory !== currentCursorColor) {
+        createOrUpdateCustomCursorIcon(newCategory);
+    }
+}
+
+
+
+// Function to update the position of the custom cursor icon
+function updateCustomCursorIconPosition(e) {
+    var mapDiv = map.getContainer(); // Get the map container
+    var mapRect = mapDiv.getBoundingClientRect();
+
+    // Check if the cursor is inside the map div
+    if (e.clientX >= mapRect.left && e.clientX <= mapRect.right && e.clientY >= mapRect.top && e.clientY <= mapRect.bottom) {
+        customCursorIcon.style.display = 'block'; // Show the cursor icon
+
+        // Center the icon over the cursor
+        var iconWidth = 24; // Width of the icon
+        var iconHeight = 24; // Height of the icon
+        customCursorIcon.style.left = (e.clientX - iconWidth / 2) + 'px';
+        customCursorIcon.style.top = (e.clientY - iconHeight / 2) + 'px';
+    } else {
+        customCursorIcon.style.display = 'none'; // Hide the cursor icon outside the map
+    }
+}
+
+
+
+// Remove the custom cursor icon
+function removeCustomCursorIcon() {
+    if (customCursorIcon) {
+        document.body.removeChild(customCursorIcon);
+        customCursorIcon = null;
+    }
+}
+
+// Layers control
+L.control.layers(baseLayers).addTo(map);
+
+// Feature group for drawn items
+// Feature group for drawn items
+// Feature group for drawn items
+var drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+// Initialize the draw control with default options
+var drawControl = new L.Control.Draw({
+    edit: {
+        featureGroup: drawnItems
+    },
+    draw: {
+        marker: {
+            icon: customMarkerIcon // Use custom icon for marker
+        },
+        polyline: {
+            shapeOptions: {
+                color: currentCategory, // Default color
+                weight: 4
+            }
+        },
+        rectangle: {
+            shapeOptions: {
+                color: currentCategory, // This should set the color dynamically
+                weight: 4
+            }
+        },
+        circle: {
+            shapeOptions: {
+                color: currentCategory, // Default color
+                weight: 4
+            }
+        },
+        polygon: {
+            shapeOptions: {
+                color: currentCategory, // Default color
+                weight: 4
+            }
+        },
+    }
+});
+
+// Add the draw control to the map
+map.addControl(drawControl);
+
+// Function to update the draw handlers' options based on the current category
+function updateDrawHandlers() {
+    var options = {
+        color: currentCategory, // Dynamic color
+        weight: 4
+    };
+
+    // Check and update options for each handler
+    if (drawControl._toolbars.draw && drawControl._toolbars.draw._modes) {
+        if (drawControl._toolbars.draw._modes.rectangle) {
+            drawControl._toolbars.draw._modes.rectangle.handler.options.shapeOptions = options;
+        }
+        if (drawControl._toolbars.draw._modes.circle) {
+            drawControl._toolbars.draw._modes.circle.handler.options.shapeOptions = options;
+        }
+        if (drawControl._toolbars.draw._modes.polygon) {
+            drawControl._toolbars.draw._modes.polygon.handler.options.shapeOptions = options;
+        }
+        if (drawControl._toolbars.draw._modes.polyline) {
+            drawControl._toolbars.draw._modes.polyline.handler.options.shapeOptions = options;
+        }
+    }
+}
+
+// Event listener for shape creation end
+map.on(L.Draw.Event.CREATED, function(event) {
+    console.log('Shape created:', event.layerType);
+    var layer = event.layer;
+    drawnItems.addLayer(layer); // Add to feature group
+});
+
+
+
+
+// Function to set cursor style for map and its child elements
+function setCursorStyleForMap(cursorStyle) {
+    var mapContainer = map.getContainer();
+    mapContainer.style.cursor = cursorStyle;
+
+    // Apply cursor style to current child elements
+    Array.from(mapContainer.getElementsByTagName('*')).forEach(function(element) {
+        element.style.cursor = cursorStyle;
+    });
+
+    // Use a MutationObserver to apply the style to new elements added to the map
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) { // Element node
+                        node.style.cursor = cursorStyle;
+                        Array.from(node.getElementsByTagName('*')).forEach(function(child) {
+                            child.style.cursor = cursorStyle;
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    // Start observing the map container for added nodes
+    observer.observe(mapContainer, { childList: true, subtree: true });
+
+    // Store the observer in a global variable to disconnect it later
+    window.mapCursorObserver = observer;
+}
+
+// Function to reset cursor style and stop observing for changes
+function resetCursorStyleForMap() {
+    if (window.mapCursorObserver) {
+        window.mapCursorObserver.disconnect(); // Disconnect the observer
+        delete window.mapCursorObserver;
+    }
+
+    var mapContainer = map.getContainer();
+    mapContainer.style.cursor = ''; // Reset cursor style
+
+    // Reset cursor style for child elements
+    Array.from(mapContainer.getElementsByTagName('*')).forEach(function(element) {
+        element.style.cursor = '';
+    });
+}
+
+// Flag to track if warning has already been shown
+var warningShown = false;
+
+// Function to show warning message
+function showWarningMessage(message) {
+    if (!warningShown) {
+        console.log('Warning:', message);
+        alert(message);
+        warningShown = true; // Set the flag to true after showing the warning
+    }
+}
+
+// Function to reset the warning flag
+function resetWarningFlag() {
+    warningShown = false; // Reset the flag when drawing is stopped or started
+}
+
+// Function to check if a category is selected
+function isCategorySelected() {
+    return currentCategory && currentCategory !== '';
+}
+
+let popupTimer;
+
+function showToolSelectionPopup() {
+  fetch('/get-allowed-object-types')
+    .then(response => response.json())
+    .then(data => {
+      const popup = document.getElementById('tool-selection-popup');
+      if (popup) {
+        document.getElementById('marker-btn').style.display = data.marker ? 'inline-block' : 'none';
+        document.getElementById('rectangle-btn').style.display = data.rectangle ? 'inline-block' : 'none';
+        document.getElementById('circle-btn').style.display = data.circle ? 'inline-block' : 'none';
+        document.getElementById('polygon-btn').style.display = data.polygon ? 'inline-block' : 'none';
+
+        popup.style.display = 'flex';
+        resetToolSelectionPopupTimer();
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching allowed object types:', error);
+    });
+}
+
+
+function resetToolSelectionPopupTimer() {
+  clearTimeout(popupTimer);
+  popupTimer = setTimeout(function() {
+    const popup = document.getElementById('tool-selection-popup');
+    if (popup) {
+      popup.style.display = 'none';
+    }
+  }, 60000); // Hide after 10 seconds
+}
+
+// Add click event listener to popup to reset timer on click
+document.getElementById('tool-selection-popup').addEventListener('click', resetToolSelectionPopupTimer);
+
+// Function to set the current category and update the map elements
+function setCategory(category) {
+    currentCategory = category;
+    console.log('Category set to:', currentCategory);
+    updateDrawHandlers(); // Update draw handlers when category changes
+    console.log('setCategory called with category:', category);
+
+    // Update the color of the cursor icon
+    createOrUpdateCustomCursorIcon(currentCategory);
+
+    // Send message to categories.html to update selected button
+    var categoriesIframe = document.getElementById('categories-iframe'); // Replace with your iframe ID
+    if (categoriesIframe) {
+        categoriesIframe.contentWindow.postMessage({ type: 'selectCategory', category: category }, '*');
+    }
+
+    // Display the tool selection popup
+    var popup = document.getElementById('tool-selection-popup');
+    if (popup) {
+        popup.style.display = 'block';
+        console.log('Popup displayed');
+    } else {
+        console.log('Popup element not found');
+    }
+
+    // Default to Marker tool and apply 'selected' class to marker tool-button
+    selectTool('.leaflet-draw-draw-marker');
+    var markerToolButton = document.getElementById('marker-btn');
+    if (markerToolButton) {
+        clearSelectedTools(); // Clear any existing selections
+        markerToolButton.classList.add('selected');
+        console.log('Marker tool-button selected programmatically');
+    }
+    showToolSelectionPopup();
+}
+
+// Function to set the active tool button based on the Leaflet draw event
+function setActiveToolButton(layerType) {
+    clearSelectedTools();
+    var buttonId = layerType + '-btn'; // Construct the button ID
+    var button = document.getElementById(buttonId);
+    if (button) {
+        button.classList.add('selected');
+        console.log('Active tool set to:', layerType);
+    }
+}
+// Function to select a tool
+function selectTool(selector) {
+    var leafletDrawButton = document.querySelector('.leaflet-draw-toolbar').querySelector(selector);
+    if (leafletDrawButton) {
+        console.log('Leaflet draw button found for selector:', selector);
+        leafletDrawButton.click(); // Trigger the click event on the Leaflet draw toolbar button
+    } else {
+        console.log('Leaflet draw button not found for selector:', selector);
+    }
+}
+
+// Function to clear selected tools
+function clearSelectedTools() {
+    var selectedButtons = document.querySelectorAll('.tool-btn.selected');
+    selectedButtons.forEach(button => {
+        button.classList.remove('selected');
+        console.log('Removed selected outline from:', button);
+    });
+}
+
+// Function to clear selected tools
+function clearSelectedTools() {
+    var selectedButtons = document.querySelectorAll('.tool-btn.selected');
+    selectedButtons.forEach(button => {
+        button.classList.remove('selected');
+        console.log('Removed selected outline from:', button);
+    });
+}
+
+
+// Function to programmatically activate the marker tool
+function activateMarkerTool() {
+    var markerToolButton = document.querySelector('.leaflet-draw-draw-marker');
+    if (markerToolButton) {
+        markerToolButton.click(); // Simulate a click on the marker tool
+        console.log('Marker tool activated programmatically');
+    }
+}
+
+var currentCategory = ''; // Start with no category selected
+
+// Event listener for when the draw tool is selected
+// Update event listener for when the draw tool is selected
+map.on(L.Draw.Event.TOOLBAROPENED, function() {
+    console.log('Draw toolbar opened');
+    resetWarningFlag(); // Reset the warning flag
+    if (!isCategorySelected()) {
+        showWarningMessage('Select a category first');
+    }
+});
+
+// Global variables to track drawing state and the current layer
+var isDrawing = false;
+var currentLayer = null;
+
+// Event listener for when the marker tool is selected
+map.on(L.Draw.Event.DRAWSTART, function(event) {
+    setActiveToolButton(event.layerType);
+    console.log('Draw start:', event.layerType);
+	  isDrawing = true; // Set the flag to indicate that drawing has started
+    currentLayer = null; // Reset the current layer
+    resetWarningFlag(); // Reset the warning flag
+    if (!isCategorySelected()) {
+        showWarningMessage('Select a category first');
+        if (drawControl._toolbars.draw._activeMode) {
+            drawControl._toolbars.draw._activeMode.handler.disable();
+        }
+        return;
+    }
+
+
+    if (event.layerType === 'marker') {
+        createCustomCursorIcon(currentCategory);
+        document.addEventListener('mousemove', updateCustomCursorIconPosition);
+        setCursorStyleForMap('none');
+    }
+});
+
+// Update event listener for when drawing is stopped
+map.on(L.Draw.Event.DRAWSTOP, function(event) {
+    clearSelectedTools();
+
+    console.log('Draw stop:', event.layerType);
+    if (currentLayer) {
+        var type = currentLayer instanceof L.Marker ? 'marker' : ''; // Check if currentLayer is a Marker
+        var isWithinBounds;
+        
+        if (type === 'marker') {
+            isWithinBounds = bounds.contains(currentLayer.getLatLng());
+        } else if (currentLayer.getBounds) {
+            isWithinBounds = bounds.contains(currentLayer.getBounds());
+        }
+
+        if (!isWithinBounds) {
+            map.removeLayer(currentLayer); // Remove the layer if it's outside the boundaries
+        } else {
+            drawnItems.addLayer(currentLayer); // Add the layer if it's within the boundaries
+        }
+    }
+    isDrawing = false; // Reset the drawing flag
+    currentLayer = null; // Reset the current layer
+    resetSelectedToolButton();
+
+    resetWarningFlag(); // Reset the warning flag
+    if (event.layerType === 'marker') {
+        removeCustomCursorIcon();
+        document.removeEventListener('mousemove', updateCustomCursorIconPosition);
+        resetCursorStyleForMap();
+    }
+});
+
+
+
+
+
+// Function to create a colored circle icon
+function createColoredCircleIcon(color) {
+var svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+    <circle cx="16" cy="16" r="8" fill="${color}" />
+    <circle cx="16" cy="16" r="8" stroke="${color}" stroke-width="16" fill="none" stroke-opacity="0.5" />
+</svg>`;
+
+return L.icon({
+    iconUrl: `data:image/svg+xml;base64,${btoa(svgIcon)}`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
+});
+
+
+
+}
+
+
+var postButtonClicked = false;
+var currentLayer;
+
+map.on(L.Draw.Event.CREATED, function(event) {
+    console.log('Shape creation event triggered'); // Debug: Confirm the event is firing
+    console.log('Created shape type:', event.layerType); // Debug: Log the actual type of created shape
+    resetSelectedToolButton();
+
+    var layer = event.layer;
+    var type = event.layerType.toLowerCase();
+    var color = currentCategory;
+    var shapeType = type;
+    currentLayer = layer; // Store the current layer
+    isDrawing = false; // Reset the drawing flag as the shape has been created
+
+    // Boundary check
+     if (bounds && type === 'marker') {
+        if (!bounds.contains(layer.getLatLng())) {
+            alert("It is not allowed to place objects outside of boundaries!");
+            return;
+        }
+    } else if (type !== 'marker' && bounds && layer.getBounds) {
+        if (!bounds.contains(layer.getBounds())) {
+            alert("It is not allowed to place objects outside of boundaries!");
+            return;
+        }
+    } else {
+        if (!bounds.contains(layer.getBounds())) {
+            alert("It is not allowed to place objects outside of boundaries!");
+            // No need to set isDrawing = false here as the drawing process is already completed
+            return; // Exit the function without adding the layer
+        }
+    }
+	
+    currentLayer = event.layer; // Assign the newly created layer to currentLayer
+    drawnItems.addLayer(layer); // Add to feature group
+    isDrawing = false; // Reset the drawing flag as shape creation is complete
+	
+    if (type === 'marker') {
+        var customIcon = createColoredCircleIcon(color);
+        layer.setIcon(customIcon);
+    } else {
+        layer.setStyle({ color: color });
+    }
+
+    drawnItems.addLayer(layer);
+
+	let badWords = [];
+
+
+// Fetch the list of bad words from filter.json
+fetch('/static/filter.json')
+    .then(response => response.json())
+    .then(data => {
+        // Merge the arrays of bad words from different languages into one array
+        badWords = [].concat(...Object.values(data));
+    });
+
+ 
+    drawnItems.addLayer(layer);
+    var shapeData = layer.toGeoJSON();
+    var radius = (type === 'circle' || type === 'circlemarker') ? layer.getRadius() : null;
+
+    if (!shapeLayersByColor[color]) {
+        shapeLayersByColor[color] = [];
+    }
+    shapeLayersByColor[color].push(layer);
+    console.log('Added layer to shapeLayersByColor', layer);
+
+    var popupContent = '<form id="note-form">' +
+                       '<textarea id="shape-note" placeholder="Wie denken Sie über diesen Ort?"></textarea><br>' +
+                       '<button type="button" id="save-note">Schicken</button>' +
+                       '<button type="button" id="cancel-note">Stornieren</button>' +
+                       '</form>';
+
+    layer.bindPopup(popupContent, {
+        keepInView: true,
+        closeButton: false
+    });
+	
+ // Delay opening the popup to ensure it is rendered
+    setTimeout(function() {
+        layer.openPopup();
+    }, 10);
+
+     layer.on('popupopen', function() {
+        setTimeout(function() {
+            var saveButton = document.getElementById('save-note');
+            var cancelButton = document.getElementById('cancel-note');
+
+            saveButton.addEventListener('click', function() {
+                var noteText = document.getElementById('shape-note').value;
+
+                // Create a RegExp pattern from the list of bad words
+                const badWordPattern = new RegExp(`${badWords.join('|')}`, 'i');
+                const hasBadWord = badWordPattern.test(noteText);
+
+                if (hasBadWord) {
+                    alert("Beleidigende Worte sind nicht erlaubt.");
+                    return;
+                }
+
+                // Pattern to detect repeated letters (same letter repeating more than 4 times)
+                const repeatedLetterPattern = /(.)\1{4,}/;
+                const hasRepeatedLetters = repeatedLetterPattern.test(noteText);
+
+                if (hasRepeatedLetters) {
+                    alert("Wiederholte Buchstaben sind nicht erlaubt.");
+                    return;
+                }
+
+                // Pattern to detect links (http, https, www, or domain names)
+                const linkPattern = /(http:\/\/|https:\/\/|www\.|\.(com|net|org|info|io|at|de|uk|co|gov|edu|eu|biz|tv|me|us|ca|au|nz))/i;
+                const hasLink = linkPattern.test(noteText);
+
+                if (hasLink) {
+                    alert("Links sind nicht erlaubt.");
+                    return;
+                }
+
+                if (noteText.length >= 10 && noteText.length <= 150) {
+                    // Your existing logic to save shape with data
+                    saveShapeWithData(shapeData, shapeType, radius, noteText, layer);
+                } else {
+                    alert("Bitte geben Sie zwischen 10 und 150 Zeichen ein.");
+                }
+
+                layer.closePopup();
+            });
+
+            cancelButton.addEventListener('click', function() {
+                console.log('Cancel button clicked. Canceling shape creation.');
+                layer.closePopup();
+                drawnItems.removeLayer(layer);
+            });
+        }, 10);
+     }
+	 );
+    // Setup click event listener on the document to detect clicks outside the popup
+	document.addEventListener('click', function onClickOutsidePopup(event) {
+    if (currentLayer && currentLayer._popup && currentLayer._popup._container) {
+        if (!currentLayer._popup._container.contains(event.target) && !postButtonClicked) {
+            console.log('Click detected outside the popup. Canceling shape creation.');
+            drawnItems.removeLayer(currentLayer);
+            document.removeEventListener('click', onClickOutsidePopup); // Remove the event listener
+}
+        }
+    });
+}
+);
+function bindPopupWithNote(layer, note) {
+    var popupContent = '<div><strong></strong> ' + note + '</div>';
+    layer.bindPopup(popupContent, {
+        keepInView: true
+    });
+}
+
+function saveShapeWithData(shapeData, shapeType, radius, note, layer) {
+    $.ajax({
+        url: '/api/shapes',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            shape_data: shapeData,
+            shape_type: shapeType,
+            shape_color: currentCategory,
+            radius: radius,
+            shape_note: note
+        }),
+        success: function(response) {
+            console.log('Shape saved with ID:', response.id);
+            layer.options.id = response.id;
+            bindPopupWithNote(layer, note);
+            drawnItems.addLayer(layer);
+            console.log('Shape and note saved to the database.');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error saving shape:', error);
+        }
+    });
+}
+// Load shapes from server
+
+
+// This function will handle the deletion of shapes
+// Function to handle individual shape deletion
+function handleDelete(layer) {
+    var shapeId;
+    // Check for the id in various possible locations within the layer object
+    if (layer.options && layer.options.id) {
+        shapeId = layer.options.id;
+    } else if (layer.feature && layer.feature.properties && layer.feature.properties.id) {
+        shapeId = layer.feature.properties.id;
+    } else if (layer._layers) {
+        // If the layer is a FeatureGroup, check each sub-layer for an id
+        var subLayers = Object.values(layer._layers);
+        if (subLayers.length > 0 && subLayers[0].feature && subLayers[0].feature.properties) {
+            shapeId = subLayers[0].feature.properties.id;
+        }
+    }
+    
+    if (shapeId) {
+        console.log('Deleting shape with ID:', shapeId);
+        $.ajax({
+            url: '/api/shapes/' + shapeId,
+            type: 'DELETE',
+            success: function(response) {
+                console.log('Shape deleted with ID:', shapeId);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting shape with ID:', shapeId, error);
+            }
+        });
+        map.removeLayer(layer);
+    } else {
+        console.error('Error: shape ID is undefined, cannot delete. Layer:', layer);
+        // Additional logging to debug the layer's structure
+        console.log('Layer details:', layer);
+        if (layer._layers) {
+            console.log('Nested layers:', Object.values(layer._layers));
+        }
+    }
+}
+ 
+
+
+function resetSelectedToolButton() {
+    if (selectedToolButton) {
+        selectedToolButton.classList.remove('selected');
+        selectedToolButton = null; // Reset the global variable
+    }
+}
+
+
+map.on(L.Draw.Event.DELETED, function(event) {
+    var layers = event.layers;
+    layers.eachLayer(function(layer) {
+        console.log('Preparing to delete layer:', layer);
+        handleDelete(layer);
+    });
+});
+
+map.on('draw:deletestop', function(event) {
+    if (event.target._deletedLayers) {
+        event.target._deletedLayers.eachLayer(function(layer) {
+            console.log('Clearing layer:', layer);
+            handleDelete(layer);
+        });
+    }
+});
+
+  </script>
+
+  
+<script>
+   console.log("Dark and light mode switcher successfully loaded.");
+
+    function areCookiesEnabled() {
+        return document.getElementById("enableCookies")?.checked;
+    }
+
+    function setCookie(name, value, days) {
+        if (!areCookiesEnabled()) {
+            console.log(`Cookie 3: Not permitted to set '${name}' cookie.`);
+            return;
+        }
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+        console.log(`Cookie 3: Saved '${name}' cookie.`);
+    }
+
+    function getCookie(name) {
+        if (!areCookiesEnabled()) {
+            console.log(`Cookie 3: Not permitted to access '${name}' cookie.`);
+            return null;
+        }
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) == 0) {
+                console.log(`Cookie 3: Loaded '${name}' cookie.`);
+                return c.substring(nameEQ.length, c.length);
+            }
+        }
+        return null;
+    }
+
+function refreshCircleElements() {
+    // Assuming your objects are stored and can be retrieved again
+    // You might need to adjust this to fit your application's structure
+    fetch('/api/all-shapes')
+        .then(response => response.json())
+        .then(data => {
+            displayObjects(data.shapes);
+        });
+}
+	
+    let isLightMode = localStorage.getItem('lightMode') === 'true';
+
+    function applyCloseButtonColor() {
+        const closeButton = document.getElementById('closeButton');
+        if (closeButton) {
+            const closeButtonColor = getComputedStyle(document.documentElement).getPropertyValue('--button-close-color').trim();
+            closeButton.style.color = closeButtonColor;
+        }
+    }
+
+    function updatePopupStyles() {
+    const popup = document.getElementById("info-popup");
+    if (popup) {
+        popup.style.backgroundColor = isLightMode ? "rgba(244, 244, 237, 1)" : "rgba(17, 17, 17, 1)";
+        popup.style.color = isLightMode ? "black" : "white";
+    }
+}
+
+
+    function getDarkModeProperties() {
+        return {
+            '--background-color': '#1b1b1b',
+            '--category-button-outline': 'white',
+            '--text-color': 'white',
+            '--button-bg-color': '#3a3a3a', // Dark mode button background
+            '--tool-btn-hover-outline': '3px solid white', // Dark mode hover outline
+            '--tool-btn-selected-outline': '5px solid white', // Dark mode selected outline
+            '--leaflet-control-bg-dark': '#3a3a3a',
+            '--leaflet-control-color-dark': 'white',
+            '--sidebar-bg': '#111111',
+            '--leaflet-disabled-bg': '#111111',
+            '--leaflet-disabled-color': 'white',
+            '--popup-bg-color': '#111111',
+            '--popup-text-color': 'white',
+            '--counter-pill-bg-color': '#111111',
+            '--counter-pill-text-color': 'white',
+            '--leaflet-control-layers-expanded-bg': '#111111',
+            '--leaflet-control-layers-expanded-text': 'white',
+            '--leaflet-control-layers-selector-text': 'white',
+            '--leaflet-control-layers-list-text': 'white',
+            '--leaflet-control-layers-before-bg': 'url("static/mapicon2.png")',
+            '--button-close-color': 'var(--button-close-color-dark)'
+        };
+    }
+
+    function getLightModeProperties() {
+        return {
+            '--background-color': '#ffffff',
+            '--category-button-outline': 'black',
+            '--text-color': 'black',
+            '--button-bg-color': '#111111', // Light mode button background
+            '--tool-btn-hover-outline': '3px solid #111111', // Outline for hover in light mode
+            '--tool-btn-selected-outline': '5px solid #111111', // Outline for selected in light mode
+            '--leaflet-control-bg-light': '#f3f4f8',
+            '--leaflet-control-color-light': 'black',
+            '--sidebar-bg': '#EDF2F4',
+            '--leaflet-disabled-bg': '#EDF2F4',
+            '--leaflet-disabled-color': 'black',
+            '--popup-bg-color': '#ffffff',
+            '--popup-text-color': 'black',
+            '--counter-pill-bg-color': '#f3f4f8',
+            '--counter-pill-text-color': 'black',
+            '--leaflet-control-layers-expanded-bg': '#f3f4f8',
+            '--leaflet-control-layers-expanded-text': 'black',
+            '--leaflet-control-layers-selector-text': 'black',
+            '--leaflet-control-layers-list-text': 'black',
+            '--leaflet-control-layers-before-bg': 'url("static/mapicon2b.png")',
+            '--button-close-color': 'var(--button-close-color-light)'
+        };
+    }
+
+function setThemeStyles(mode) {
+    var themeProperties = mode === 'light' ? getLightModeProperties() : getDarkModeProperties();
+    for (var property in themeProperties) {
+        document.documentElement.style.setProperty(property, themeProperties[property]);
+    }
+	
+	   // Additional logic for setting popup-specific properties
+    document.documentElement.style.setProperty('--popup-bg-color', mode === 'light' ? 'var(--popup-bg-color-light)' : 'var(--popup-bg-color-dark)');
+    document.documentElement.style.setProperty('--popup-text-color', mode === 'light' ? 'var(--popup-text-color-light)' : 'var(--popup-text-color-dark)');
+
+
+        // Update the hover outline color based on the mode
+        var hoverOutlineColor = mode === 'light' ? 'var(--outline-hover-color-light)' : 'var(--outline-hover-color-dark)';
+        document.documentElement.style.setProperty('--outline-hover-color', hoverOutlineColor);
+        console.log("Mode set to " + mode + ", hover outline color: " + hoverOutlineColor);
+
+        updateImageSources(mode); // Ensure this function is called to update images
+        applyCloseButtonColor();
+        updateObjectItemTextColor(); // Update text color immediately after setting theme
+		updatePopupStyles(); // Added updatePopupStyles here
+
+	}
+
+    function updateImageSources(mode) {
+        console.log("Updating image sources for mode:", mode);
+        setImgSrc('.logo-img', mode === 'light' ? 'static/logo_long2.png' : 'static/logo_long.png');
+        setImgSrc('#pinlistdiv img', mode === 'light' ? 'static/pinlisticon2.png' : 'static/pinlisticon.png');
+        setImgSrc('#infoDiv img', mode === 'light' ? 'static/infoicon2.png' : 'static/infoicon.png');
+        setImgSrc('#lightswitchDiv img', mode === 'light' ? 'static/sunicon2.png' : 'static/sunicon.png');
+        setImgSrc('#keyDiv img', mode === 'light' ? 'static/keyicon2.png' : 'static/keyicon.png');
+    }
+
+    function setImgSrc(selector, src) {
+        console.log("Setting image source for", selector, "to", src);
+        document.querySelectorAll(selector).forEach(function (element) {
+            element.src = src;
+        });
+    }
+
+
+    function updateObjectItemTextColor() {
+        const objectItems = document.querySelectorAll('.object-item span');
+        objectItems.forEach(item => {
+            item.style.color = isLightMode ? 'black' : 'white';
+        });
+    }
+
+function toggleLightMode() {
+    isLightMode = !isLightMode;
+    localStorage.setItem('lightMode', isLightMode);
+    setThemeStyles(isLightMode ? 'light' : 'dark');
+
+    // Directly update the popup's style
+    const popup = document.getElementById("info-popup");
+    if (popup) {
+        popup.style.backgroundColor = isLightMode ? "rgba(244, 244, 237, 1)" : "rgba(17, 17, 17, 1)";
+        popup.style.color = isLightMode ? "black" : "white";
+    }
+}
+
+
+
+    // Moved filterObjects function to the global scope
+    function filterObjects() {
+        const searchQuery = document.getElementById('search-box').value.toLowerCase();
+        const colorFilter = document.getElementById('color-filter').value;
+        const typeFilter = document.getElementById('type-filter').value;
+
+        fetch('/api/shapes')
+            .then(response => response.json())
+            .then(data => {
+                let filteredObjects = data.shapes;
+
+                if (colorFilter) {
+                    filteredObjects = filteredObjects.filter(object => object.shape_color === colorFilter);
+                }
+
+                if (typeFilter) {
+                    filteredObjects = filteredObjects.filter(object => object.shape_type === typeFilter);
+                }
+
+                if (searchQuery) {
+                    filteredObjects = filteredObjects.filter(object => object.shape_note.toLowerCase().includes(searchQuery));
+                }
+
+                displayObjects(filteredObjects);
+            });
+    }
+	
+	   // Define displayObjects in the global scope
+   function displayObjects(objects) {
+        const objectList = document.getElementById('object-list');
+        objectList.innerHTML = '';
+        objects.forEach(object => {
+            const objectDiv = createObjectDiv(object, isLightMode ? 'light' : 'dark');
+            objectDiv.addEventListener('click', function () {
+                handleClickOnObjectItem(object.id);
+            });
+            objectList.appendChild(objectDiv);
+        });
+    }
+	
+	
+    function createObjectDiv(object, mode) {
+        const objectDiv = document.createElement('div');
+        objectDiv.classList.add('object-item');
+        objectDiv.setAttribute('data-object-id', object.id);
+        objectDiv.style.display = 'flex';
+        objectDiv.style.alignItems = 'center';
+
+        const colorCircle = createColorCircle(object.shape_color);
+        const shapeTypeEmoji = createShapeTypeEmoji(object.shape_type);
+        const shapeNote = createShapeNote(object.shape_note, mode);
+
+        objectDiv.appendChild(colorCircle);
+        objectDiv.appendChild(shapeTypeEmoji);
+        objectDiv.appendChild(shapeNote);
+
+        return objectDiv;
+    }
+	
+	
+
+   function createColorCircle(color) {
+        const circleElement = document.createElement('span');
+        circleElement.style.width = '20px';
+        circleElement.style.height = '20px';
+        circleElement.style.borderRadius = '50%';
+        circleElement.style.backgroundColor = color;
+        circleElement.style.display = 'inline-block';
+        circleElement.style.marginRight = '5px';
+        circleElement.style.flexShrink = '0';
+
+        // Set border color based on the isLightMode variable
+        circleElement.style.border = isLightMode ? '2px solid white' : '2px solid white';
+
+        return circleElement;
+    }
+
+    function createShapeTypeEmoji(shapeType) {
+        const shapeTypeEmoji = document.createElement('span');
+        shapeTypeEmoji.style.marginRight = '5px';
+        shapeTypeEmoji.style.fontSize = '20px';
+        switch (shapeType) {
+            case 'marker':
+                shapeTypeEmoji.textContent = '📍';
+                break;
+            case 'rectangle':
+                shapeTypeEmoji.textContent = '◼️';
+                break;
+            case 'circle':
+                shapeTypeEmoji.textContent = '⚪';
+                break;
+            case 'polygon':
+                shapeTypeEmoji.textContent = '🔺';
+                break;
+        }
+        return shapeTypeEmoji;
+    }
+
+    function createShapeNote(note, mode) {
+        const shapeNote = document.createElement('span');
+        shapeNote.textContent = note;
+        shapeNote.style.color = mode === 'light' ? 'black' : 'white';
+        return shapeNote;
+    }
+
+    function handleClickOnObjectItem(objectID) {
+        var layer = leafletLayers[objectID];
+        if (layer) {
+            // centerMapOnObject(layer);
+            if (layer.openPopup) {
+                layer.openPopup();
+            }
+        } else {
+            console.error('No Leaflet layer found for object ID:', objectID);
+        }
+    }
+
+    function centerMapOnObject(layer) {
+        if (layer.getLatLng) {
+            map.panTo(layer.getLatLng());
+        } else if (layer.getBounds) {
+            map.fitBounds(layer.getBounds());
+        }
+    }
+
+    // DOMContentLoaded Event Listener
+
+    document.addEventListener('DOMContentLoaded', function () {
+        isLightMode = localStorage.getItem('lightMode') === 'true';
+        setThemeStyles(isLightMode ? 'light' : 'dark');
+    });
+
+    document.getElementById('lightswitchDiv').addEventListener('click', toggleLightMode);
+	
+	document.addEventListener('DOMContentLoaded', function () {
+    let isLightMode = getCookie('lightMode') === 'true';
+
+   fetch('/api/all-shapes')
+        .then(response => response.json())
+        .then(data => {
+            displayObjects(data.shapes);
+            updateObjectItemTextColor(isLightMode ? 'light' : 'dark');
+        });
+
+    document.getElementById('lightswitchDiv').addEventListener('click', toggleLightMode);
+
+
+
+
+    if (areCookiesEnabled()) {
+        isLightMode = getCookie2('lightMode') === 'true';
+    }
+
+    // Function to provide the current theme state
+    window.getCurrentTheme = function() {
+        let currentTheme = localStorage.getItem('lightMode') === 'true';
+        console.log("Current theme is light mode:", currentTheme);
+        return currentTheme;
+    };
+
+    function setThemeStyles(mode) {
+        // Set the theme styles based on the mode
+    }
+
+    // COOKIE 2 Functions
+
+    populateColorFilterWithCategories();
+
+    function populateColorFilterWithCategories() {
+        $.getJSON('/get-categories', function (categories) {
+            const colorFilter = document.getElementById('color-filter');
+            categories.forEach(function (category) {
+                if (category.color !== 'null') {
+                    const option = document.createElement('option');
+                    option.value = category.color;
+                    option.textContent = category.text;
+                    colorFilter.appendChild(option);
+                }
+            });
+        });
+    }
+
+   
+});
+</script>
+
+
+
+<?php // DARK AND LIGHT MODE SWITCH END ?>
+<?php BUTTON CLICK AUDIO EFFECTS START ?>
+<audio id="buttonClickAudio" preload="auto">
+<source src="static/buttonclick.mp3" type="audio/mp3"/>
+</audio>
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+    function playClickSound() {
+        // Create a new audio element for each click
+        var audio = new Audio('static/buttonclick.mp3');
+        // Attempt to play audio without waiting for the promise to resolve
+        audio.play().catch(function(e) {
+            console.error('Audio play failed:', e);
+        });
+    }
+
+    // Attach event listener to the static parent element for delegation
+    document.addEventListener('click', function(event) {
+        // Ensure the clicked element matches the dynamic buttons
+        if (event.target.closest('#dynamicgeneration-categorypicker .categorybutton')) {
+            playClickSound();
+        }
+    });
+});
+  </script>
+<script>
+   // General click sound effect
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the audio element
+    const audio = document.getElementById('buttonClickAudio');
+    
+    // Add click event listener to all elements with class 'button-s'
+    const buttonSs = document.querySelectorAll('.button-s');
+    buttonSs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+
+    // Add click event listener to all elements with class 'categorybutton'
+    const categorybuttons = document.querySelectorAll('.categorybutton');
+    categorybuttons.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+	    // Add click event listener to all elements with class 'button-s'
+    const keyDivs = document.querySelectorAll('.key-div');
+    keyDivs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+	    // Add click event listener to all elements with class 'button-s'
+    const pinlistdivs = document.querySelectorAll('.pinlist-div');
+    pinlistdivs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+		    // Add click event listener to all elements with class 'button-s'
+    const lightswitchDivs = document.querySelectorAll('.lightswitch-div');
+    lightswitchDivs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+		    // Add click event listener to all elements with class 'button-s'
+    const infoDivs = document.querySelectorAll('.info-div');
+    infoDivs.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+        });
+    });
+	
+});
+  </script>
+<audio id="buttonClickAudio2">
+<source src="static/buttonclickSuccess.mp3" type="audio/mp3"/>
+</audio>
+<audio id="buttonClickAudio3">
+<source src="static/buttonclickClose.mp3" type="audio/mp3"/>
+</audio>
+<script>
+   // Popup closing sound effect
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the audio elements
+    const audioSuccess = document.getElementById('buttonClickAudio2');
+    const audioClose = document.getElementById('buttonClickAudio3');
+    
+    // Add event listener to the body element for delegation
+    document.body.addEventListener('click', function(event) {
+            if (event.target.matches('.leaflet-popup-content button:nth-child(1)')) {
+            audioSuccess.play();
+        }     else if (event.target.matches('.leaflet-popup-content button:nth-child(2)')) {
+            audioClose.play();
+        }
+    });
+});
+  </script>
+<?php BUTTON CLICK AUDIO EFFECTS END ?>
+<?php BOTTOM RIGHT CORNER INFOPOPUP LOGIC START ?>
+<script>
+   document.addEventListener("DOMContentLoaded", () => {
+    const popupTexts = {  
+        'Login': {
+			title: '<span style="color: #35b7ff;">Admin-Zugriff</span>',
+            text: `<form id="loginForm" onsubmit="handleLogin(); return false;">
+                <label for="username">Benutzer:</label>
+                <input type="text" id="username" name="username"><br><br>
+
+                <label for="password">Passwort:</label>
+                <input type="password" id="password" name="password"><br><br>
+
+                <label for="otp">OTP 2FA Token:</label>
+                <input type="text" id="otp" name="otp"><br><br>
+
+                <button type="submit" class="button-s" style="padding: 20px; background-color: #35b7ff; border: none; cursor: pointer;">
+                    <span style="position: relative; top: 0px;">Anmelden</span>
+                </button>
+            </form>`,
+            color: 'white',
+            persist: true
+        },
+      
+		'admin-pindelete': {
+        title: 'Einzelne Pins löschen:',
+        text: '<img src="static/uigif-deletebyid.gif" alt="uigif-deletebyid" style="max-width: 100%; max-height: 800px; width: auto; height: auto;">',
+        color: '#ffffff',
+        persist: true  // Keep this popup visible forever
+		},
+		'admin-pinresize': {
+        title: 'Größenänderung:',
+        text: '<img src="static/uigif-resize.gif" alt="uigif-resize" style="max-width: 100%; max-height: 800px; width: auto; height: auto;">',
+        color: '#ffffff',
+        persist: true  // Keep this popup visible forever
+		},
+        'Overlay': {
+            title: '<span style="color: #35b7ff;">Dieses Bild wird ersetzt:</span>',
+            text: '<img src="static/overlay.jpg" alt="Overlay Image" style="max-width: 100%; max-height: 400px; width: auto; height: auto; border-radius: 30px;">',
+            color: '#ffffff',
+            persist: true  // Keep this popup visible forever
+        },
+        'Success': {
+            title: 'Anmeldung erfolgreich!',
+            text: 'Wenn Sie Hilfe benötigen, sehen Sie sich die Anleitung an oder wenden Sie sich an den Entwickler.',
+            color: 'green',
+            persist: false
+        },
+        'Willkommen beim Stimmungskompass!': {
+            title: 'Willkommen beim Stimmungskompass!',
+            text: 'Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.<br><br>Sie können Hinweise an Orten anbringen, die Sie entweder als angenehm oder problematisch empfinden.<br><br><span style="color: #f77f00; font-weight: bold;">Und so funktioniert es:</span><br><span style="color: #f77f00; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.<br><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie einen Pin auf der Karte.<br><span style="color: #f77f00; font-weight: bold;">3.</span> Teilen Sie uns Ihre Meinung mit!<br><br><span style="font-weight: bold;">Ihre Beiträge sind anonym und können von der Gemeinde zur Verbesserung des öffentlichen Raums genutzt werden.</span> ',
+            color: '#f77f00'
+        },
+		<!-- CATEGORY EDITING AREA START -->
+     
+ 
+'Stimmungskompass grüßt Sie!': {
+    title: '<div style="text-align: center;">Stimmungskompass grüßt Sie!</div>',
+    text: `<div class="desktop-only" style="text-align: center;">Der Kompass ist eine nette Möglichkeit, Ihre Meinung über Ihre Stadt zu äußern.</div>
+           <div class="desktop-only" style="text-align: center;">Für weitere Informationen klicken Sie auf „Video ansehen“ oder auf die Hilfeschaltflächen.</div><br>
+           <div class="iframe-container">
+              <iframe src="https://www.youtube.com/embed/RnCeDG0wzy4" frameborder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowfullscreen style="border-radius: 30px;"></iframe>
+           </div><br>
+           <div class="desktop-only" style="display: flex; align-items: center; justify-content: center;">
+               <div id="dontShowAgainContainer" style="display: block;">
+                   <button id="dontShowAgain" style="padding: 8px; border-radius: 30px; background-color: #2d9cd9; border: none; cursor: pointer; color: white;">
+Nicht mehr anzeigen                   </button>
+               </div>
+               <div>
+                   <input type="checkbox" id="enableCookies" name="enableCookies" style="display:none" checked>
+                   <label for="enableCookies" style="display:none">Cookies zulassen</label>
+               </div>
+           </div>`,
+    color: '#f77f00',
+    persist: true,
+},
+
+
+
+
+		<!-- CATEGORY EDITING AREA END -->
+
+    };
+
+    // Function to create and show the popup
+    let popupTimer;
+    let buttonTimer;
+
+    function showPopup(info) {
+        clearTimeout(popupTimer);
+        const existingPopup = document.getElementById("info-popup");
+        if (existingPopup) {
+            existingPopup.remove();
+			    updatePopupStyles();
+
+        }
+		
+		const popup = document.createElement("div");
+popup.id = "info-popup";
+popup.style.backgroundColor = isLightMode ? "rgba(244, 244, 237, 1)" : "rgba(17, 17, 17, 1)";
+popup.style.color = isLightMode ? "black" : "white";
+popup.style.border = "2px solid rgba(0,0,0,0.2)"; // Added border style
+popup.style.borderRadius = "30px";
+popup.style.position = "absolute";
+popup.style.bottom = "10px";
+popup.style.right = "10px";
+popup.style.marginLeft = "10px";
+popup.style.marginTop = "10px";
+popup.style.zIndex = "1000";
+popup.style.opacity = "0";
+popup.style.transition = "opacity 0.2s ease-in";
+
+const title = document.createElement("h3");
+title.style.color = info.color;
+title.style.fontWeight = "bold";
+title.style.fontSize = "24px";
+title.innerHTML = info.title;
+popup.appendChild(title);
+
+const text = document.createElement("p");
+text.style.fontWeight = "bold";
+text.style.fontSize = "18px";
+text.innerHTML = info.text;
+popup.appendChild(text);
+
+    // Create a close button
+    const closeButton = document.createElement("button");
+    closeButton.innerHTML = "&times;"; // Use HTML entity for 'X'
+    closeButton.style.position = "absolute";
+    closeButton.style.top = "10px";
+    closeButton.style.right = "10px";
+    closeButton.style.border = "none";
+    closeButton.style.background = "none";
+	closeButton.style.color = "#3a3a3a";
+    closeButton.style.fontSize = "30px";
+    closeButton.style.cursor = "pointer";
+
+    // Append the close button to the popup
+    popup.appendChild(closeButton);
+
+    // Close button event listener
+    closeButton.addEventListener('click', function() {
+        popup.style.opacity = "0";
+        setTimeout(() => {
+            popup.remove();
+        }, 500);
+    });
+
+
+// Adjust font size for mobile devices
+const adjustFontSizeForMobile = () => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    if (mediaQuery.matches) {
+        title.style.fontSize = "12px";
+        text.style.fontSize = "9px";
+    } else {
+        title.style.fontSize = "24px";
+        text.style.fontSize = "18px";
+    }
+};
+
+// Listen for changes in screen size
+window.addEventListener('resize', adjustFontSizeForMobile);
+
+// Initial adjustment
+adjustFontSizeForMobile();
+
+        document.getElementById("map").appendChild(popup);
+
+        popup.addEventListener('click', function (event) {
+            event.stopPropagation();
+        });
+
+        setTimeout(() => {
+            popup.style.opacity = "1";
+        }, 0);
+
+        let timeout = 15000;  // Default timeout in milliseconds
+        if (info.title === 'Willkommen beim Stimmungskompass!!') {
+            timeout = 15000;  // 15 seconds for 'Willkommen' popup
+        } else if (info.title === 'Dieses Bild wird ersetzt:') {
+            timeout = -1;  // Infinite for 'Overlay' popup
+        }
+		
+		// Check if this is the 'uigif-counter' popup and add a specific class
+		if (info.title === 'So funktioniert Filtern:') {
+        popup.classList.add('uigif-counter-popup');
+		} else if (info.title === 'Größenänderung:') {
+        popup.classList.add('admin-pinresize-popup');
+} else if (info.title === 'Einzelne Pins löschen:') {
+    popup.classList.add('admin-pindelete-popup');
+
+		}
+		
+       if (!info.persist) {
+        clearTimeout(popupTimer);
+        popupTimer = setTimeout(() => {
+            popup.style.opacity = "0";
+            setTimeout(() => {
+                popup.remove();
+                // Update visibility tracking variable when the popup is hidden
+                if (info.title === 'So funktioniert Filtern:') {
+                    isUIGifCounterPopupVisible = false;
+                }
+            }, 500);
+        }, timeout);
+    }
+
+    // Update visibility tracking variable when the popup is shown
+    if (info.title === 'So funktioniert Filtern:') {
+        isUIGifCounterPopupVisible = true;
+    }
+}
+
+    function activatePopup() {
+        const info = popupTexts['Willkommen beim Stimmungskompass!'];
+        showPopup(info);
+    }
+
+    function activatePopupByKey() {
+        const info = popupTexts['Login'];
+        showPopup(info);
+
+        const loginForm = document.getElementById("loginForm");
+        if (loginForm) {
+            loginForm.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const formData = new FormData(loginForm);
+                const username = formData.get("username");
+                const password = formData.get("password");
+                const otp = formData.get("otp");
+
+                fetch("/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: `username=${username}&password=${password}&otp=${otp}`,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === "success") {
+                            const successInfo = popupTexts['Success'];
+                            showPopup(successInfo);
+
+                            const imageToHide = document.querySelector(".hide-on-mobile.resistant-image");
+                            if (imageToHide) {
+                                imageToHide.style.display = 'none';
+                            }
+
+                            const h3ElementsToHide = document.querySelectorAll(".resistant-h3");
+                            if (h3ElementsToHide) {
+                                h3ElementsToHide.forEach((element) => {
+                                    element.style.display = 'none';
+                                });
+                            }
+
+                            const adminTools = document.querySelector(".admintools-container");
+                            if (adminTools) {
+                                adminTools.style.display = 'block';
+                            }
+                        } else {
+                            alert("Failed: " + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        alert("An error occurred: " + error);
+                    });
+            });
+        }
+    }
+	
+	
+	 
+// COOKIE 1 Functions
+function setCookie1(name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie1(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+	// COOKIES ENABLING FEATURE, CURRENTLY ONLY SUPPORTS COOKIE 1
+ // Function to show the test popup on page load
+function showTestPopup() {
+    if (!getCookie1('noTestPopup')) {
+        const info = popupTexts['Stimmungskompass grüßt Sie!'];
+        showPopup(info);
+
+        setTimeout(() => {
+            const dontShowButton = document.getElementById("dontShowAgain");
+            const enableCookiesCheckbox = document.getElementById("enableCookies");
+            const dontShowAgainContainer = document.getElementById("dontShowAgainContainer");
+
+            // Function to toggle the display of "Don't show again" button
+            function toggleDontShowButton() {
+                dontShowAgainContainer.style.display = enableCookiesCheckbox.checked ? "block" : "none";
+            }
+
+            // Initial toggle on popup display
+            toggleDontShowButton();
+
+            // Event listener for the "Enable Cookies" checkbox
+            if (enableCookiesCheckbox) {
+                enableCookiesCheckbox.addEventListener('change', function() {
+                    console.log("Enable Cookies Checkbox is now " + (this.checked ? "checked" : "unchecked"));
+                    toggleDontShowButton();
+                });
+            }
+
+            // Event listener for the "Don't show again" button
+            if (dontShowButton) {
+                dontShowButton.addEventListener('click', function() {
+                    if (enableCookiesCheckbox && enableCookiesCheckbox.checked) {
+                        setCookie1('noTestPopup', 'true', 7); // Set the cookie for 7 days
+                    } else {
+                        console.log("Cookies are disabled. Not setting the cookie.");
+                    }
+                    const popup = document.getElementById("info-popup");
+                    if (popup) {
+                        popup.style.opacity = "0";
+                        setTimeout(() => {
+                            popup.remove();
+                        }, 500);
+                    }
+                });
+            }
+        }, 0);
+    }
+}
+    // Call the showTestPopup function to display the popup
+    showTestPopup();
+
+	
+// Add new code here
+const counterContainer = document.getElementById('counter-container');
+let isUIGifCounterPopupVisible = false;
+// New code for admin-pindelete
+const adminPinDelete = document.getElementById('adminpindelete');
+let isAdminPinDeletePopupVisible = false;
+
+if (adminPinDelete) {
+    adminPinDelete.addEventListener('mouseover', () => {
+        if (!isAdminPinDeletePopupVisible) {
+            const adminPinDeleteInfo = popupTexts['admin-pindelete'];
+            showPopup(adminPinDeleteInfo);
+            isAdminPinDeletePopupVisible = true;
+        }
+    });
+
+    adminPinDelete.addEventListener('mouseout', () => {
+        if (isAdminPinDeletePopupVisible) {
+            const existingPopup = document.getElementById("info-popup");
+            if (existingPopup) {
+                existingPopup.style.opacity = "0";
+                setTimeout(() => {
+                    existingPopup.remove();
+                }, 500);
+            }
+            isAdminPinDeletePopupVisible = false;
+        }
+    });
+}
+
+
+// New code for admin-pinresize
+const adminPinResize = document.getElementById('adminpinresize');
+let isAdminPinResizePopupVisible = false;
+
+if (adminPinResize) {
+    adminPinResize.addEventListener('mouseover', () => {
+        if (!isAdminPinResizePopupVisible) {
+            const adminPinResizeInfo = popupTexts['admin-pinresize'];
+            showPopup(adminPinResizeInfo);
+            isAdminPinResizePopupVisible = true;
+        }
+    });
+
+    adminPinResize.addEventListener('mouseout', () => {
+        if (isAdminPinResizePopupVisible) {
+            const existingPopup = document.getElementById("info-popup");
+            if (existingPopup) {
+                existingPopup.style.opacity = "0";
+                setTimeout(() => {
+                    existingPopup.remove();
+                }, 500);
+            }
+            isAdminPinResizePopupVisible = false;
+        }
+    });
+}
+
+    let isOverlayPopupVisible = false;
+
+    window.toggletitelbildMenu = function () {
+        var titelbildMenu = document.getElementById('titelbild-menu');
+        if (titelbildMenu.style.display === 'none') {
+            titelbildMenu.style.display = 'block';
+            const overlayInfo = popupTexts['Overlay'];
+            showPopup(overlayInfo);
+            isOverlayPopupVisible = true;
+        } else {
+            titelbildMenu.style.display = 'none';
+            if (isOverlayPopupVisible) {
+                const existingPopup = document.getElementById("info-popup");
+                if (existingPopup) {
+                    existingPopup.style.opacity = "0";
+                    setTimeout(() => {
+                        existingPopup.remove();
+                    }, 500);
+                }
+                isOverlayPopupVisible = false;
+            }
+        }
+    };
+	
+
+	
+	// New code for infoDiv
+    const infoDiv = document.getElementById('infoDiv');
+    if (infoDiv) {
+        infoDiv.addEventListener('click', () => {
+            window.open('https://stimmungskompass.at', '_blank');
+        });
+    }
+
+
+    const keyDiv = document.querySelector("#keyDiv");
+    if (keyDiv) {
+        keyDiv.addEventListener("click", activatePopupByKey);
+    }
+
+    const buttonS = document.querySelector(".button-s");
+    if (buttonS) {
+        buttonS.addEventListener("click", activatePopup);
+    }
+
+    const categorybuttons = document.querySelectorAll(".categorybutton");
+    categorybuttons.forEach(menu => {
+        menu.addEventListener("click", (event) => {
+            const title = event.currentTarget.querySelector("h3").textContent;
+            const info = popupTexts[title];
+            showPopup(info);
+        });
+    });
+});
+
+
+  </script>
+<?php BOTTOM RIGHT CORNER INFOPOPUP LOGIC END ?>
+<script>
+    (function() {
+        function handleLogin() {
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+            var otp_token = document.getElementById('otp').value;
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/login', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onload = function() {
+                if (this.status === 200) {
+                    loadAdminTools();
+                } else {
+                    console.error('Login failed:', this.responseText);
+                }
+            };
+            xhr.onerror = function() {
+                console.error("Request failed.");
+            };
+            xhr.send(`username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&otp=${encodeURIComponent(otp_token)}`);
+        }
+
+        function loadAdminTools() {
+    console.log("Attempting to load admin tools...");
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/admintools', true);
+    xhr.onload = function() {
+        if (this.status === 200) {
+            console.log('Admin tools loaded successfully.');
+            var dynamicArea = document.getElementById('dynamicgeneration-admintools');
+            dynamicArea.innerHTML = this.responseText;
+
+
+
+                 // Call the initialization function here
+            initializeAdminTools();
+        } else {
+            console.error('Failed to load admin tools:', this.statusText);
+        }
+    };
+    xhr.onerror = function() {
+        console.error("Request failed.");
+    };
+    xhr.send();
+}
+       function initializeAfterAdminToolsLoad() {
+        console.log('Initializing elements after loading admin tools.');
+        if (document.getElementById('category-select')) {
+            initializeRecolorFunctionality();
+        }
+        if (document.getElementById('delete-category-select')) {
+            initializeDeleteCategoryDropdown();
+        }
+        if (document.getElementById('deleteCategory')) {
+            initializeDeleteCategoryButton();
+        }
+        updateAllCategoryDropdowns();
+    }
+	
+	function initializeAdminTools() {
+    console.log("Initializing Admin Tools...");
+
+    // Populate category dropdowns
+    populateCategoryDropdowns();
+
+    // Initialize all features
+    initializeRecolorFunctionality();
+    initializeCategoryRenameFunctionality();
+    initializeCategoryCreationFunctionality();
+    initializeCategoryDeletionFunctionality();
+
+    // Delete objects by category
+    const deleteCategoryObjectsButton = document.getElementById('delete-category-objects');
+    if (deleteCategoryObjectsButton) {
+        deleteCategoryObjectsButton.addEventListener('click', deleteObjectsByCategory);
+    }
+
+    // Delete objects by object type
+    const deleteObjectTypeObjectsButton = document.getElementById('delete-object-type-objects');
+    if (deleteObjectTypeObjectsButton) {
+        deleteObjectTypeObjectsButton.addEventListener('click', deleteObjectsByObjectType);
+    }
+
+    console.log("Admin Tools Initialized Successfully");
+}
+
+
+// Function to populate all category dropdowns
+function populateCategoryDropdowns() {
+    console.log("Populating Category Dropdowns...");
+    fetch('/get-categories')
+        .then(response => response.json())
+        .then(categories => {
+            updateDropdowns(categories, ['category-select', 'rename-category-select', 'delete-category-select']);
+            console.log("Category Dropdowns Populated Successfully");
+        })
+        .catch(error => {
+            console.error('Error fetching categories:', error);
+        });
+}
+
+
+
+// Utility function to update dropdowns
+function updateDropdowns(categories, dropdownIds) {
+    dropdownIds.forEach(dropdownId => {
+        const dropdown = document.getElementById(dropdownId);
+        if (dropdown) {
+            dropdown.innerHTML = ''; // Clear existing options
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.text;
+                option.textContent = category.text;
+                dropdown.appendChild(option);
+            });
+        } else {
+            console.error(`Dropdown with ID ${dropdownId} not found.`);
+        }
+    });
+}
+
+// Function to initialize the rename category functionality
+function initializeCategoryRenameFunctionality() {
+    // Fetch categories and populate the rename dropdown
+    fetch('/get-categories')
+    .then(response => response.json())
+    .then(categories => {
+        const renameDropdown = document.getElementById('rename-category-select');
+        renameDropdown.innerHTML = ''; // Clear existing options
+
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.color; // Assuming 'color' is the identifier
+            option.textContent = category.text;
+            renameDropdown.appendChild(option);
+        });
+    });
+
+    // Event listener for the rename button
+    const renameButton = document.getElementById('rename-category');
+    if (renameButton) {
+        renameButton.addEventListener('click', function() {
+            var color = document.getElementById('rename-category-select').value;
+            var newName = document.getElementById('rename-category-name').value.trim();
+            if (newName === "") {
+                console.error('New category name is required');
+                return;
+            }
+            console.log(`Renaming category ${color} to ${newName}`);
+            
+            fetch('/rename-category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ color: color, newName: newName })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Category renamed successfully:', result);
+                // Optionally refresh the categories in the dropdown and other related UI
+            })
+            .catch(error => {
+                console.error('Error renaming category:', error);
+            });
+        });
+    }
+}
+	
+function initializeRecolorFunctionality() {
+    // Fetch categories and populate the recolor dropdown
+    fetch('/get-categories')
+    .then(response => response.json())
+    .then(categories => {
+        const recolorDropdown = document.getElementById('category-select');
+        recolorDropdown.innerHTML = ''; // Clear existing options
+
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.color; // Assuming 'color' is the identifier
+            option.textContent = category.text;
+            recolorDropdown.appendChild(option);
+        });
+    });
+
+    // Event listener for the recolor button
+    const recolorButton = document.getElementById('update-color');
+    if (recolorButton) {
+        recolorButton.addEventListener('click', function() {
+            var selectedCategory = document.getElementById('category-select').value;
+            var newColor = document.getElementById('color-picker').value;
+
+            fetch('/update-category', { // Ensure this matches your Flask route
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ oldColor: selectedCategory, newColor: newColor })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Category recolored:', result);
+                // Optionally update the UI to reflect the color change
+            })
+            .catch(error => {
+                console.error('Error recoloring category:', error);
+            });
+        });
+    }
+}
+function initializeCategoryCreationFunctionality() {
+    // Event listener for the create category button
+    const createCategoryButton = document.getElementById('create-category'); // Adjust the ID as needed
+    if (createCategoryButton) {
+        createCategoryButton.addEventListener('click', function() {
+            var categoryName = document.getElementById('create-category-name').value.trim(); // Adjust the ID as needed
+            var categoryColor = document.getElementById('create-category-color').value; // Adjust the ID as needed
+
+            if (categoryName === "") {
+                console.error('Category name is required');
+                return;
+            }
+
+            fetch('/create-category', { // Ensure this matches your Flask route
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: categoryName, color: categoryColor })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Category created successfully:', result);
+                // Optionally update the UI to reflect the new category
+            })
+            .catch(error => {
+                console.error('Error creating category:', error);
+            });
+        });
+    }
+}
+
+// Function to fetch categories and populate the deletion dropdown
+function fetchCategoriesForDeletion() {
+    fetch('/get-categories')
+    .then(response => response.json())
+    .then(categories => {
+        const categorySelect = document.getElementById('delete-category-select');
+        categorySelect.innerHTML = ''; // Clear existing options
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.color; // Assuming 'color' is the identifier
+            option.textContent = category.text;
+            categorySelect.appendChild(option);
+        });
+    });
+}
+
+// Function to initialize the delete category functionality
+function initializeCategoryDeletionFunctionality() {
+    fetchCategoriesForDeletion(); // Populate the dropdown
+
+    const deleteCategoryButton = document.getElementById('delete-category');
+    if (deleteCategoryButton) {
+        deleteCategoryButton.addEventListener('click', function() {
+            var selectedCategory = document.getElementById('delete-category-select').value;
+
+            fetch('/delete-category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ color: selectedCategory })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log('Category deleted successfully:', result);
+                fetchCategoriesForDeletion(); // Refresh the dropdown
+            })
+            .catch(error => {
+                console.error('Error deleting category:', error);
+            });
+        });
+    }
+}
+
+// Function to initialize the delete category dropdown
+   // Initialize Delete Category Dropdown
+    function initializeDeleteCategoryDropdown() {
+        fetch('/get-categories')
+        .then(response => response.json())
+        .then(categories => {
+            var dropdown = document.getElementById('delete-category-select');
+            dropdown.innerHTML = ''; // Clear existing options
+            
+            categories.forEach(function(category) {
+                var option = document.createElement('option');
+                option.value = option.text = category.name; // Assuming 'name' is the correct property
+                dropdown.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching categories:', error);
+        });
+    }
+
+function deleteObjectsByCategory() {
+    var color = document.getElementById('delete-category-select').value;
+    console.log(`Deleting objects with category color ${color}`);
+
+    fetch('/delete-objects-by-category', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ color: color })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log('Objects deleted successfully:', result);
+        fetchCategoriesForDeletion(); // Refresh the categories in the dropdowns
+    })
+    .catch(error => {
+        console.error('Error deleting objects by category:', error);
+    });
+}
+
+function deleteObjectsByObjectType() {
+    var objectType = document.getElementById('delete-object-type-select').value;
+    console.log(`Deleting objects of type ${objectType}`);
+
+    fetch('/delete-objects-by-object-type', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ objectType: objectType })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log('Objects deleted successfully:', result);
+        // Optionally refresh the map or shapes to reflect the deletion
+    })
+    .catch(error => {
+        console.error('Error deleting objects by object type:', error);
+    });
+}
+
+// Function to initialize the delete button
+function initializeDeleteCategoryButton() {
+  var deleteButton = document.getElementById('deleteCategory');
+  deleteButton.addEventListener('click', function() {
+    var selectedCategory = document.getElementById('delete-category-select').value;
+
+    fetch('/delete-category', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ categoryName: selectedCategory })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(result => {
+      console.log('Category deleted:', result);
+      initializeDeleteCategoryDropdown(); // Re-initialize the dropdown
+      refreshCategoriesDisplay(); // Refresh the categories displayed on the page
+    })
+    .catch(error => {
+      console.error('Error deleting category:', error);
+    });
+	    updateAllCategoryDropdowns();
+  });
+}
+
+    function updateAllCategoryDropdowns() {
+    console.log('Fetching categories from: /get-categories');
+
+    fetch('/get-categories')
+        .then(response => response.json())
+        .then(categories => {
+            const dropdowns = [
+                document.getElementById('rename-category-select'),
+                document.getElementById('category-select'),
+                document.getElementById('delete-category-select')
+            ];
+
+            dropdowns.forEach(dropdown => {
+                if (dropdown) {
+                    let currentValue = dropdown.value; // Store current value to restore it later
+                    dropdown.innerHTML = ''; // Clear existing options
+
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = option.textContent = category.text;
+                        dropdown.appendChild(option);
+                    });
+
+                    dropdown.value = currentValue; // Restore the previously selected value
+                } else {
+                    console.error('Dropdown element not found in the DOM.');
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching categories:', error);
+        });
+		}
+
+    window.handleLogin = handleLogin;
+})();
+
+  </script>
+<?php ADMINTOOLS CATEGORIES TOGGLING START ?>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.addEventListener('click', function(event) {
+        if (event.target.id === 'toggle-category-menu') {
+            var categoryMenu = document.getElementById('category-menu');
+            categoryMenu.style.display = categoryMenu.style.display === 'none' ? 'block' : 'none';
+        }
+    });
+});
+
+    </script>
+	
+<script>
+    // Other script contents...
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Other initialization code...
+
+        // Event delegation to listen for click on the dynamically inserted button
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'toggle-management-filter') {
+                console.log('Redirecting to /admintools');
+                window.location.href = '/admintools';
+            }
+        });
+    });
+
+    // Rest of your script...
+</script>
+	
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Event delegation for dynamically loaded content
+    document.body.addEventListener('click', function(event) {
+        if (event.target.id === 'toggle-category-menu2') {
+            var categoryMenu = document.getElementById('category-menu');
+            categoryMenu.style.display = categoryMenu.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'toggle-rename-category') {
+            var renameCategoryContent = document.getElementById('rename-category-content');
+            renameCategoryContent.style.display = renameCategoryContent.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'toggle-create-category') {
+            var createCategoryContent = document.getElementById('create-category-content');
+            createCategoryContent.style.display = createCategoryContent.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'toggle-delete-category') {
+            var deleteCategoryContent = document.getElementById('delete-category-content');
+            deleteCategoryContent.style.display = deleteCategoryContent.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'delete-category') {
+            var color = document.getElementById('delete-category-select').value;
+            console.log(`Deleting category with color ${color}`);
+            fetch('/delete-category', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ color: color })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Category deleted successfully:', data);
+                fetchCategories();
+            })
+            .catch(error => {
+                console.error('Error deleting category:', error);
+            });
+        } else if (event.target.id === 'toggle-geojson-options') {
+            var geojsonOptionsContent = document.getElementById('geojson-options-content');
+            geojsonOptionsContent.style.display = geojsonOptionsContent.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'delete-category-objects') {
+            var color = document.getElementById('delete-category-select').value;
+            console.log(`Deleting objects with category color ${color}`);
+            fetch('/delete-objects-by-category', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ color: color })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Objects deleted successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error deleting objects by category:', error);
+            });
+        } else if (event.target.id === 'delete-object-type-objects') {
+            var objectType = document.getElementById('delete-object-type-select').value;
+            console.log(`Deleting objects of type ${objectType}`);
+            fetch('/delete-objects-by-object-type', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ objectType: objectType })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Objects deleted successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error deleting objects by object type:', error);
+            });
+        } else if (event.target.id === 'toggle-object-type-restriction') {
+            var objectTypeRestrictionContent = document.getElementById('object-type-restriction-content');
+            objectTypeRestrictionContent.style.display = objectTypeRestrictionContent.style.display === 'none' ? 'block' : 'none';
+        }
+		
+		    // Toggle 'search-filter-section' visibility
+    var toggleSearchFilterButton = document.getElementById('toggle-search-filter');
+    var searchFilterSection = document.getElementById('search-filter-section');
+
+    if (toggleSearchFilterButton) {
+        toggleSearchFilterButton.addEventListener('click', function() {
+            if (searchFilterSection.style.display === 'none' || searchFilterSection.style.display === '') {
+                searchFilterSection.style.display = 'block';
+            } else {
+                searchFilterSection.style.display = 'none';
+            }
+        });
+    }
+    });
+	
+	   
+
+    // Event listener for form submission
+    document.body.addEventListener('submit', function(event) {
+        if (event.target.id === 'object-type-restriction-form') {
+            event.preventDefault();
+
+            var formData = {
+                marker: document.getElementById('allow-marker').checked,
+                rectangle: document.getElementById('allow-rectangle').checked,
+                circle: document.getElementById('allow-circle').checked,
+                polygon: document.getElementById('allow-polygon').checked
+            };
+
+            console.log('Submitting allowed object types:', formData);
+
+            fetch('/update-allowed-object-types', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Allowed object types updated:', result);
+            })
+            .catch(error => {
+                console.error('Error updating allowed object types:', error);
+            });
+        }
+    });
+
+    function fetchCategories() {
+        fetch('/get-categories')
+            .then(response => response.json())
+            .then(data => {
+                var categorySelect = document.getElementById('delete-category-select');
+                categorySelect.innerHTML = '';
+                data.forEach(category => {
+                    var option = document.createElement('option');
+                    option.value = category.color;
+                    option.textContent = category.text;
+                    categorySelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+               // console.error('Error fetching categories:', error);
+            });
+    }
+
+    fetchCategories();
+
+ // Map initialization and functionalities
+var map = L.map('admin-map').setView([48.4102, 15.6022], 15);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    tap: true, // Enable tap support for touch devices
+    tapTolerance: 30, // Tap tolerance in pixels (default is 15)
+    attribution: 'Stimmungskompass boundary editing tool | © OpenStreetMap contributors'
+}).addTo(map);
+
+
+ // Initialize the drawing toolbar
+var drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+var drawControl = new L.Control.Draw({
+    edit: {
+        featureGroup: drawnItems
+    },
+    draw: {
+        polygon: {
+            allowIntersection: false, // Disable intersection to simplify touch drawing
+        },
+        rectangle: true,
+        circle: false,
+        marker: false,
+        circlemarker: false,
+        polyline: false
+    }
+});
+
+map.addControl(drawControl);
+
+
+    var currentLayer = null;
+    map.on(L.Draw.Event.CREATED, function (e) {
+        var type = e.layerType,
+            layer = e.layer;
+        drawnItems.addLayer(layer);
+        currentLayer = layer;
+
+        var popupContent = '<form id="shapeForm" enctype="multipart/form-data">' +
+                           '<label for="note">Note:</label>' +
+                           '<input type="text" id="note" name="note"><br>' +
+                           '<label for="image">Image:</label>' +
+                           '<input type="file" id="image" name="shape_image"><br>' +
+                           '<input type="button" value="Save" onclick="saveShapeData()">' +
+                           '</form>';
+        layer.bindPopup(popupContent).openPopup();
+    });
+
+    function saveShapeData() {
+        if (!currentLayer) {
+            console.error('No layer selected');
+            return;
+        }
+
+        var formData = new FormData(document.getElementById('shapeForm'));
+        var shapeData = currentLayer.toGeoJSON();
+        var shapeType = currentLayer instanceof L.Circle ? 'circle' : 'polygon';
+        var radius = currentLayer instanceof L.Circle ? currentLayer.getRadius() : null;
+
+        formData.append('shape_data', JSON.stringify(shapeData));
+        formData.append('shape_type', shapeType);
+        formData.append('radius', radius);
+
+        fetch('/api/shapes', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Shape saved with ID:', data.id);
+            currentLayer.options.id = data.id;
+            currentLayer = null;
+        })
+        .catch(error => console.error('Error saving shape:', error));
+    }
+});
+</script>
+
+	
+<script>
+   function toggleHeatmapMenu() {
+  var heatmapSettings = document.getElementById("heatmapSettings");
+  if (heatmapSettings.style.display === "none" || heatmapSettings.style.display === "") {
+    heatmapSettings.style.display = "block";
+  } else {
+    heatmapSettings.style.display = "none";
+  }
+}
+  </script>
+<script>
+   function toggleEditorMenu() {
+        var editorMenu = document.getElementById('editor-menu');
+        if (editorMenu.style.display === 'none') {
+            editorMenu.style.display = 'block';
+        } else {
+            editorMenu.style.display = 'none';
+        }
+    }
+  </script>
+<script>
+   function togglePinsExportMenu() {
+        var menu = document.getElementById('pinsexport-menu');
+        var button = document.getElementById('pinsexport-menu-button');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+            button.classList.remove('toggled');
+        }
+    }
+  </script>
+<?php ADMINTOOLS CATEGORIES TOGGLING END ?>
+<script>
+    var shapeLayersByColor = {};
+    var colorVisibilityState = {};
+    var selectedColors = {}; // Object to keep track of selected colors
+    var isCounterPillHovered = false; // Flag to track hovering state of the counter-pill
+    var leafletLayers = {}; // Global object to store references to Leaflet layers
+
+    // Initialize visibility state dictionaries
+    function initializeVisibilityStates() {
+        var colors = {{ color_counts | tojson }};
+        console.log("Parsed color data:", colors);
+
+        Object.keys(colors).forEach(function(color) {
+            colorVisibilityState[color] = true; // All colors visible by default
+            shapeLayersByColor[color] = []; // Initialize an empty array for each color
+            selectedColors[color] = false; // Initialize selected colors
+          //  console.log('Initialized visibility state for color', color);
+        });
+    }
+
+    function updateVisibility(color) {
+        var visible = colorVisibilityState[color];
+        console.log(`Updating visibility for color '${color}' to:`, visible);
+
+        shapeLayersByColor[color].forEach(function(layer) {
+            if (visible && !map.hasLayer(layer)) {
+                map.addLayer(layer);
+                console.log('Layer added back to map:', layer);
+            } else if (!visible && map.hasLayer(layer)) {
+                map.removeLayer(layer);
+                console.log('Layer removed from map:', layer);
+            }
+        });
+    }
+
+    function createColoredCircleIcon(color) {
+        var svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="8" fill="${color}" />
+            <circle cx="16" cy="16" r="8" stroke="${color}" stroke-width="16" fill="none" stroke-opacity="0.5" />
+        </svg>`;
+
+        return L.icon({
+            iconUrl: `data:image/svg+xml;base64,${btoa(svgIcon)}`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+    }
+
+    function addLayer(shape, color, shapeNote, imagelink) {
+        var shapeLayer;
+        var shapeType = shape.shape_type;
+
+        if (shapeType === 'marker') {
+            var center = L.GeoJSON.coordsToLatLng(shape.shape_data.geometry.coordinates);
+            var customIcon = createColoredCircleIcon(color);
+            shapeLayer = L.marker(center, { icon: customIcon });
+        } else if (shapeType === 'circle' || shapeType === 'circlemarker') {
+            var center = L.GeoJSON.coordsToLatLng(shape.shape_data.geometry.coordinates);
+            var radius = shape.radius;
+            shapeLayer = L.circle(center, { color: color, radius: radius });
+        } else {
+            shapeLayer = L.geoJSON(shape.shape_data, {
+                style: function() { return { color: color }; }
+            });
+        }
+        var popupOptions = { keepInView: true };
+
+        if (shapeNote || imagelink) {
+            var popupContent = '<div class="popup-content" style="padding: 0px; box-sizing: border-box;">';
+
+            if (shapeNote) {
+                popupContent += '<div class="shape-note" style="margin-bottom: 10px;">' + shapeNote + '</div>';
+            }
+
+            if (imagelink) {
+                popupContent += `<a href="https://stimmungskompass.at/vis" target="_blank"><img id="shape-image-${shape.id}" src="${imagelink}" alt="Shape Image" onload="resizePopupToFitImage(this)" style="max-width: 300px; display: block; margin: 0 auto; border-radius: 30px;"></a>`;
+                popupOptions.className = 'image-popup';
+               // console.log(`Image loaded for shape ID: ${shape.id}:`, imagelink);
+            }
+
+            popupContent += '</div>';
+            shapeLayer.bindPopup(popupContent, popupOptions);
+        }
+
+        if (!(color in shapeLayersByColor)) {
+            console.log('Color not initialized:', color);
+            return;
+        }
+
+        if (!shapeLayersByColor[color].includes(shapeLayer)) {
+            shapeLayersByColor[color].push(shapeLayer);
+            if (colorVisibilityState[color]) {
+                map.addLayer(shapeLayer);
+            }
+           // console.log(`Layer added for color '${color}'. Layer:`, shapeLayer);
+        }
+
+        leafletLayers[shape.id] = shapeLayer;
+      //  console.log(`Storing Leaflet layer for shape ID: ${shape.id}`, shapeLayer);
+    }
+
+   function resizePopupToFitImage(imgElement) {
+    var popupContentDiv = imgElement.closest('.leaflet-popup-content');
+    if (popupContentDiv) {
+        var isMobile = window.matchMedia("(max-width: 768px)").matches;
+        var maxWidth = isMobile ? 150 : 300; // 150px on mobile, 300px otherwise
+
+        var newWidth = Math.min(imgElement.offsetWidth, maxWidth);
+        popupContentDiv.style.width = newWidth + 'px';
+        imgElement.style.maxWidth = newWidth + 'px';
+
+        console.log('Adjusted popup and image width to:', newWidth + 'px', 'Mobile:', isMobile);
+    }
+}
+
+
+    function toggleVisibility(color) {
+        colorVisibilityState[color] = !colorVisibilityState[color];
+        selectedColors[color] = !colorVisibilityState[color];
+        updateVisibility(color);
+        updateSelectedEffect(color);
+        console.log('Toggled visibility for color:', color, 'New state:', colorVisibilityState[color]);
+    }
+
+    function updateSelectedEffect(color) {
+        var colorCircle = $(`.counter-color[style*='${color}']`);
+        colorCircle.css('opacity', selectedColors[color] ? '0.5' : '1');
+    }
+
+    function fetchAndUpdateCounts() {
+        $.getJSON('/get-category-order', function(categoryOrder) {
+            // console.log('Category order:', categoryOrder);
+
+            $.getJSON('/count-objects', function(data) {
+                // console.log('Updated counts fetched:', data);
+
+                var colorCounters = $('#color-counters');
+                colorCounters.empty();
+
+                categoryOrder.forEach(function(color) {
+                    var count = data.color_counts[color];
+                    var colorCircle = $(`<span class="counter-color" style="background-color: ${color}; border: 2px solid ${isLightMode ? 'black' : 'white'};"></span>`);
+					var listItem = $(`<li style="margin-right: 5px;">`).append(colorCircle).append(` ${count}`);
+
+                    listItem.on('click', function() {
+                        toggleVisibility(color);
+                        updateSelectedEffect(color);
+                    });
+                    colorCounters.append(listItem);
+
+                    updateSelectedEffect(color);
+                });
+            });
+        });
+    }
+
+    $(document).ready(function() {
+        var counterPill = document.getElementById('counter-pill');
+        if (counterPill) {
+            counterPill.addEventListener('mouseenter', function() {
+                isCounterPillHovered = true;
+            });
+            counterPill.addEventListener('mouseleave', function() {
+                isCounterPillHovered = false;
+            });
+        }
+
+        initializeVisibilityStates();
+
+        $.getJSON('/api/shapes', function(data) {
+            console.log('Loading shapes from database. Total shapes:', data.shapes.length);
+            data.shapes.forEach(function(shape) {
+                addLayer(shape, shape.shape_color, shape.shape_note, shape.shape_imagelink);
+            });
+            console.log('All shapes loaded from the database and added to dictionaries.');
+        });
+
+        fetchAndUpdateCounts();
+        setInterval(fetchAndUpdateCounts, 1000); // Update every 1 second
+    });
+</script>
+<script>
+
+</script>
+
+
+<script>
+   function toggleSearchFilter() {
+    var searchFilterSection = document.getElementById('search-filter-section');
+    var overlayImage = document.getElementById('overlay-image');
+
+    // Toggle the search and filter section
+    if (searchFilterSection.style.display === 'none') {
+        searchFilterSection.style.display = 'block';
+    } else {
+        searchFilterSection.style.display = 'none';
+    }
+
+    // Toggle the overlay image, but ensure it still hides on mobile
+    if (window.getComputedStyle(overlayImage).display === 'none') {
+        overlayImage.style.display = 'block';
+    } else {
+        overlayImage.style.display = 'none';
+    }
+}
+  </script>
+
+<script>
+// Event delegation to handle clicks on category buttons
+document.addEventListener('click', function(e) {
+    // Check if the clicked element has the 'categorybutton' class
+    if (e.target.classList.contains('categorybutton')) {
+        // Remove 'selected' class from all category buttons
+        document.querySelectorAll('.categorybutton').forEach(function(btn) {
+            btn.classList.remove('selected');
+        });
+
+        // Add 'selected' class to the clicked button
+        e.target.classList.add('selected');
+    }
+});
+</script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const iframe = document.getElementById('categories-iframe');
+
+    function adjustIframeHeightAndShowButtons() {
+        const overlayImage = document.getElementById('overlay-image');
+        const overlayBottom = overlayImage.getBoundingClientRect().bottom;
+        const availableHeight = window.innerHeight - overlayBottom;
+
+        iframe.style.height = availableHeight + 'px';
+
+        // Call functions inside iframe only if fully loaded
+        if (iframe.contentWindow.adjustButtonPadding && iframe.contentWindow.makeButtonsVisible) {
+            iframe.contentWindow.adjustButtonPadding();
+            iframe.contentWindow.makeButtonsVisible();
+        }
+    }
+
+    iframe.onload = adjustIframeHeightAndShowButtons;
+
+    adjustIframeHeightAndShowButtons();
+    window.addEventListener('resize', adjustIframeHeightAndShowButtons);
+  });
+</script>
+
+
+
+<script>
+// Event listener for DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+  var toolSelectionPopup = document.getElementById('tool-selection-popup');
+  if (toolSelectionPopup) {
+    toolSelectionPopup.addEventListener('click', function(event) {
+      event.stopPropagation();
+    });
+
+    var clickableElements = toolSelectionPopup.querySelectorAll('.clickable');
+    clickableElements.forEach(function(element) {
+      element.addEventListener('click', function(event) {
+        event.stopPropagation();
+      });
+    });
+  }
+});
+</script>
+<script>
+
+// Define checkOverlayVisibility in the global scope
+function checkOverlayVisibility() {
+    const overlay = document.getElementById('mobileCategoryOverlay');
+    if (window.innerWidth > 768) {
+        overlay.style.display = 'none';
+        console.log("Overlay hidden because screen size is larger than 768px");
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const iframe = document.getElementById('categories-iframe');
+    const overlay = document.getElementById('mobileCategoryOverlay');
+    const hamburgerButton = document.getElementById('hamburgerButton');
+	  // Event listener for window resize
+    window.addEventListener('resize', checkOverlayVisibility);
+	
+    // Function to clone and append category buttons to the overlay
+    function appendCategoriesToOverlay() {
+    const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+    const categoryButtons = iframeDocument.querySelectorAll('.categorybutton');
+    
+    // Clear previous content
+    overlay.innerHTML = '';
+
+    // Create a container for the buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.classList.add('button-container');
+    overlay.appendChild(buttonContainer);
+
+    categoryButtons.forEach((button, index) => {
+        // Clone and append to container
+        const clonedButton = button.cloneNode(true);
+        buttonContainer.appendChild(clonedButton);
+
+            // Add event listener to cloned buttons to hide overlay on click
+            clonedButton.addEventListener('click', () => overlay.style.display = 'none');
+
+            // Debugging: Log the category details
+            console.log(`Category ${index + 1}:`, clonedButton.innerHTML);
+
+            // Additional style adjustments for cloned buttons
+            clonedButton.style.display = 'flex'; // Ensure it's displayed
+            clonedButton.style.width = '100%'; // Full width
+            clonedButton.style.justifyContent = 'center'; // Center content
+            clonedButton.style.margin = '10px 0'; // Add some margin
+        });
+
+        if (categoryButtons.length === 1000) {
+            console.log("No category buttons found in iframe.");
+        }
+
+        // Center the buttons vertically
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.alignItems = 'center';
+    }
+
+    // Function to toggle overlay
+    function toggleOverlay(show) {
+        if (show) {
+            appendCategoriesToOverlay();
+            overlay.style.display = 'block';
+            console.log("Overlay displayed with categories");
+        } else {
+            overlay.style.display = 'none';
+            console.log("Overlay hidden");
+        }
+    }
+
+    // Event listener for messages from iframe
+    window.addEventListener('message', function(event) {
+        if (event.data === 'toggleOverlay') {
+            toggleOverlay(true);
+        }
+    });
+
+    // Listen to clicks on the overlay to hide it
+    overlay.addEventListener('click', function() {
+        toggleOverlay(false);
+    });
+
+      // Add a click event listener to the hamburger menu button
+    hamburgerButton.addEventListener('click', function() {
+        toggleOverlay(true);
+    });
+
+    // Check screen size initially
+    if (window.innerWidth > 768) {
+        overlay.style.display = 'none';
+        console.log("Overlay hidden because screen size is larger than 768px");
+    }
+});
+
+  // Event listener for window resize
+    window.addEventListener('resize', checkOverlayVisibility);
+
+    // Initial check
+    checkOverlayVisibility();
+
+</script>
+<script>
+function isMobileDevice() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    return /android|iphone|ipod/i.test(userAgent);
+}
+
+function isTabletDevice() {
+    // Using screen dimensions and touch points to detect tablets
+    const minTabletSize = 600; // Minimum screen size to consider as tablet
+    const aspectRatio = window.screen.width / window.screen.height;
+    const likelyTablet = aspectRatio > 0.5 && aspectRatio < 1.5; // Aspect ratio check for tablets
+
+    return !isMobileDevice() && (window.screen.width >= minTabletSize || window.screen.height >= minTabletSize) && likelyTablet;
+}
+
+function updateBlockerVisibility() {
+    const landscapeBlocker = document.getElementById('landscape-blocker');
+    const portraitBlocker = document.getElementById('portrait-blocker');
+    const counterPill = document.getElementById('counter-pill');
+
+    if (isMobileDevice() && window.matchMedia("(orientation: landscape)").matches) {
+        // Block landscape mode for mobile devices
+        landscapeBlocker.style.display = 'block';
+        portraitBlocker.style.display = 'none';
+    } else if (isTabletDevice() && window.matchMedia("(orientation: portrait)").matches) {
+        // Block portrait mode for all tablets
+        portraitBlocker.style.display = 'block';
+        landscapeBlocker.style.display = 'none';
+    } else {
+        // No blockers for other cases
+        landscapeBlocker.style.display = 'none';
+        portraitBlocker.style.display = 'none';
+    }
+
+    counterPill.style.visibility = (landscapeBlocker.style.display === 'none' && portraitBlocker.style.display === 'none') ? 'visible' : 'hidden';
+}
+
+
+
+window.addEventListener("orientationchange", updateBlockerVisibility, false);
+window.addEventListener("resize", updateBlockerVisibility, false);
+
+document.addEventListener("DOMContentLoaded", updateBlockerVisibility);
+</script>
+
+<script>
+// Global function to check if cookies are enabled
+function areCookiesEnabled() {
+    return document.getElementById("enableCookies")?.checked;
+}
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,1009 @@
+<style>
+    input, select, button {
+        border-radius: 30px;
+        padding: 5px;
+        border: 1.5px solid black;
+    }
+	
+	         .admintools-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-button {
+            background-color: #35b7ff;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 14px 0;
+            padding: 15px;
+            box-sizing: border-box;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: normal;
+            border-radius: 30px;
+            transition: background-color 0.2s ease-in-out;
+            color: white;
+            text-align: center;
+            line-height: 1;
+            max-height: 40px;
+            width: 100%;
+        }
+		
+	   .centered-title {
+        text-align: center;
+        width: 100%;
+    }
+	
+	.leaflet-draw-edit-remove, .leaflet-draw-edit-edit {
+	display: none!important;
+	]
+	
+</style>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" />
+
+<!-- Leaflet Draw Plugin CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+
+<!-- Leaflet JavaScript Library -->
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+
+<!-- Leaflet Draw Plugin JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<!-- Include Spectrum's CSS from CDN -->
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.css" />
+<meta charset="UTF-8">
+
+<!-- Include Spectrum's JavaScript from CDN -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js"></script>
+<!-- Your additional scripts and libraries -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet"/>
+<!-- Popup Container -->
+
+
+<!-- HEATMAPZ EDITOR ADMIN START -->
+
+
+
+
+    <div style="margin: auto; text-align: center; width: 97%;">
+        <button class="toggle-button" id="toggle-category-menu">Kategorieoptionen</button>
+
+        <div id="category-menu" style="display: none;">
+            <h3>Kategorie umfärben:</h3>
+            <select id="category-select">
+                <!-- Category options will be dynamically generated -->
+            </select>
+            <input type="color" id="color-picker">
+            <button type="button" id="update-color">Farbe aktualisieren</button>
+
+            <h3>Kategorie umbenennen:</h3>
+            <select id="rename-category-select"></select>
+            <input type="text" id="rename-category-name" placeholder="Neuer Kategoriename" />
+            <button id="rename-category">Umbenennen</button>
+
+            <h3>Kategorie erstellen:</h3>
+            <input type="text" id="create-category-name" placeholder="Neuer Kategoriename" />
+            <input type="color" id="create-category-color" />
+            <button id="create-category">Erstellen</button>
+			   <div id="object-type-restriction-content" style="display: block;">
+        <h3>Objekttypauswahl einschränken:</h3>
+        <form id="object-type-restriction-form">
+            <div style="margin: auto; display: inline-block; text-align: left;">
+                <input type="checkbox" id="allow-marker" name="marker" checked> <label for="allow-marker">Marker</label><br>
+                <input type="checkbox" id="allow-rectangle" name="rectangle" checked> <label for="allow-rectangle">Rechteck</label><br>
+                <input type="checkbox" id="allow-circle" name="circle" checked> <label for="allow-circle">Kreis</label><br>
+                <input type="checkbox" id="allow-polygon" name="polygon" checked> <label for="allow-polygon">Polygon</label><br>
+                <button type="submit" style="margin-top: 20px;">Einschränken</button>
+            </div>
+        </form>
+    </div>
+        </div>
+		
+    </div>
+
+    <script>
+        document.getElementById('toggle-category-menu').addEventListener('click', function() {
+            var categoryMenu = document.getElementById('category-menu');
+            categoryMenu.style.display = categoryMenu.style.display === 'none' ? 'block' : 'none';
+        });
+    </script>
+
+<script>
+$(document).ready(function() {
+    // Fetch categories and populate dropdown
+    fetch('/get-categories').then(response => response.json()).then(data => {
+        data.forEach(category => {
+            // Append the category to the select dropdown
+            $('#category-select').append(new Option(category.text, category.color));
+        });
+
+        // Set the initial value of the HEX editor to the first category's color
+        $('#color-picker').val($('#category-select').val());
+    });
+
+    // Update the HEX editor when the selected category changes
+    $('#category-select').change(function() {
+        // Set the HEX editor to the currently selected category's color
+        $('#color-picker').val($(this).val());
+    });
+
+    // Handle the color update
+    $('#update-color').click(function() {
+    var oldColor = $('#category-select').val();
+    var newColor = $('#color-picker').val();
+    console.log(`Updating color from ${oldColor} to ${newColor}`);
+
+    // Update the category color
+    $.ajax({
+        url: '/update-category',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ oldColor: oldColor, newColor: newColor }),
+        success: function(response) {
+            console.log('Category color updated successfully:', response);
+            
+            // Now update the shapes in the database with the new color
+            $.ajax({
+                url: '/update-shape-colors',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ oldColor: oldColor, newColor: newColor }),
+                success: function(response) {
+                    console.log('Shapes color updated successfully:', response);
+                    // Optionally refresh the map or shapes to reflect the color change
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating shapes color:', error);
+                }
+            });
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating category color:', error);
+        }
+    });
+});
+
+});
+
+</script>
+
+ 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Event delegation for dynamically loaded content
+    document.body.addEventListener('click', function(event) {
+        if (event.target.id === 'toggle-category-menu2') {
+            var categoryMenu = document.getElementById('category-menu');
+            categoryMenu.style.display = categoryMenu.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'toggle-rename-category') {
+            var renameCategoryContent = document.getElementById('rename-category-content');
+            renameCategoryContent.style.display = renameCategoryContent.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'toggle-create-category') {
+            var createCategoryContent = document.getElementById('create-category-content');
+            createCategoryContent.style.display = createCategoryContent.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'toggle-delete-category') {
+            var deleteCategoryContent = document.getElementById('delete-category-content');
+            deleteCategoryContent.style.display = deleteCategoryContent.style.display === 'none' ? 'block' : 'none';
+        } else if (event.target.id === 'toggle-geojson-options') {
+            var geojsonOptionsContent = document.getElementById('geojson-options-content');
+            geojsonOptionsContent.style.display = geojsonOptionsContent.style.display === 'none' ? 'block' : 'none';
+        }
+		  else if (event.target.id === 'toggle-object-type-restriction') {
+            var objectTypeRestrictionContent = document.getElementById('object-type-restriction-content');
+            objectTypeRestrictionContent.style.display = objectTypeRestrictionContent.style.display === 'none' ? 'block' : 'none';
+        }
+    });
+});
+</script>
+	
+<script>
+$(document).ready(function() {
+    // Fetch categories and populate the rename dropdown
+    fetch('/get-categories').then(response => response.json()).then(data => {
+        data.forEach(category => {
+            $('#rename-category-select').append(new Option(category.text, category.color));
+            // Populate the hex editor with the current color
+            $('#color-picker').val(category.color);
+        });
+    });
+
+    // Handle the category rename
+    $('#rename-category').click(function() {
+        var color = $('#rename-category-select').val();
+        var newName = $('#rename-category-name').val().trim();
+        if (newName === "") {
+            console.error('New category name is required');
+            return;
+        }
+        console.log(`Renaming category ${color} to ${newName}`);
+        
+        $.ajax({
+            url: '/rename-category',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ color: color, newName: newName }),
+            success: function(response) {
+                console.log('Category renamed successfully:', response);
+                // Optionally refresh the categories in the dropdown and other related UI
+            },
+            error: function(xhr, status, error) {
+                console.error('Error renaming category:', error);
+            }
+        });
+    });
+});
+
+</script>
+
+
+
+
+<script>
+$(document).ready(function() {
+    // Handle the category creation
+    $('#create-category').click(function() {
+        setTimeout(() => { // Adding a delay to ensure the input value is updated
+            var name = $('#create-category-name').val().trim();
+            var color = $('#create-category-color').val();
+            console.log(`Inputted name: '${name}'`); // Log the inputted name for debugging
+            console.log(`Selected color: '${color}'`); // Log the selected color for debugging
+            
+            if (name === "") {
+                console.error('Category name is required');
+                return;
+            }
+            console.log(`Creating new category '${name}' with color '${color}'`);
+            
+            $.ajax({
+                url: '/create-category',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ name: name, color: color }),
+                success: function(response) {
+                    console.log('Category created successfully:', response);
+                    // Optionally refresh the categories in the UI
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error creating category:', error);
+                }
+            });
+        }, 100); // Delay of 100 milliseconds
+    });
+});
+</script>
+
+<!-- Category Deletion Section -->
+<div style="text-align: center; margin: auto; width: 97%;">
+    <button class="toggle-button" id="toggle-delete-category">Löschmöglichkeiten</button>
+    <div id="delete-category-content" style="display: none;">
+        <h3>Kategorie löschen:</h3>
+        <select id="delete-category-select">
+            <!-- Options will be dynamically populated -->
+        </select>
+        <button id="delete-category" style="margin: 00px 0;">Kategorie löschen</button>
+        <button id="delete-category-objects">Nur Objekte löschen, nicht die Kategorie</button>
+
+        <h3>Objekte nach Typ löschen:</h3>
+        <select id="delete-object-type-select" style="margin: 0px 0;">
+            <option value="marker">Marker</option>
+            <option value="circle">Kreis</option>
+            <option value="rectangle">Rechteck</option>
+            <option value="polygon">Polygon</option>
+            <option value="polyline">Polylinie (unbenutzt)</option>
+            <option value="circlemarker">Kreismarkierung (unbenutzt)</option>
+            <!-- Add more object types as needed -->
+        </select>
+        <button id="delete-object-type-objects">Objekte löschen</button>
+    </div>
+</div>
+
+
+
+
+    </div>
+
+<script>
+$(document).ready(function() {
+    // Populate the delete category dropdown
+    fetchCategories();
+
+    // Handle the category deletion
+    $('#delete-category').click(function() {
+        var color = $('#delete-category-select').val();
+        console.log(`Deleting category with color ${color}`);
+
+        $.ajax({
+            url: '/delete-category',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ color: color }),
+            success: function(response) {
+                console.log('Category deleted successfully:', response);
+                // Refresh the categories in the dropdowns
+                fetchCategories();
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting category:', error);
+            }
+        });
+    });
+});
+
+function fetchCategories() {
+    fetch('/get-categories').then(response => response.json()).then(data => {
+        var categorySelect = $('#delete-category-select');
+        categorySelect.empty(); // Clear existing options
+        data.forEach(category => {
+            categorySelect.append(new Option(category.text, category.color));
+        });
+    });
+}
+</script>
+
+
+
+<script>
+    function toggleCategory2Menu() {
+        var category2Menu = document.getElementById('category2-menu');
+        if (category2Menu.style.display === 'none') {
+            category2Menu.style.display = 'block';
+        } else {
+            category2Menu.style.display = 'none';
+        }
+    }
+</script>
+
+<div style="text-align: center; margin: auto; width: 97%;">
+    <button class="toggle-button" id="toggle-geojson-options">Geojson-Menü</button>
+    <div id="geojson-options-content" style="display: none;">
+        <button onclick="window.location.href='/export-geojson'" style="margin-top: 20px;">Export GeoJSON</button>
+        
+        <!-- Add a form for importing GeoJSON -->
+        <form action="/import-geojson" method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
+            <input type="file" name="file" accept=".geojson">
+            <button type="submit">Import GeoJSON</button>
+        </form>
+    </div>
+</div>
+
+
+
+<!-- ADMINTOOLS CATEGORY LOADING END-->
+
+<!-- Delete Objects by Category -->
+
+
+<script>
+$(document).ready(function() {
+    // Populate the delete category dropdown
+    fetchCategories();
+
+    // Handle the category deletion
+    $('#delete-category-objects').click(function() {
+        var color = $('#delete-category-select').val();
+        console.log(`Deleting objects with category color ${color}`);
+
+        $.ajax({
+            url: '/delete-objects-by-category',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ color: color }),
+            success: function(response) {
+                console.log('Objects deleted successfully:', response);
+                // Refresh the categories in the dropdowns
+                fetchCategories();
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting objects by category:', error);
+            }
+        });
+    });
+
+    // Handle the object type deletion
+    $('#delete-object-type-objects').click(function() {
+        var objectType = $('#delete-object-type-select').val();
+        console.log(`Deleting objects of type ${objectType}`);
+
+        $.ajax({
+            url: '/delete-objects-by-object-type',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ objectType: objectType }),
+            success: function(response) {
+                console.log('Objects deleted successfully:', response);
+                // Optionally refresh the map or shapes to reflect the deletion
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting objects by object type:', error);
+            }
+        });
+    });
+
+    // Other JavaScript code here...
+});
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var managementFilterSection = document.getElementById('management-filter-section');
+        var toggleButton = document.getElementById('toggle-management-filter');
+
+        // Initially hide the search filter section
+        managementFilterSection.style.display = 'none';
+
+        toggleButton.addEventListener('click', function() {
+            if (managementFilterSection.style.display === 'none') {
+                managementFilterSection.style.display = 'block';
+            } else {
+                managementFilterSection.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+<script>
+// Function to update category dropdowns
+function updateCategoryDropdowns() {
+    console.log("Fetching updated categories from the server."); // Debugging statement
+
+    fetch('/get-categories')
+        .then(response => response.json())
+        .then(categories => {
+            console.log("Received categories:", categories); // Debugging statement
+
+            // Dropdown elements
+            const dropdowns = [
+                document.getElementById('category-select'),
+                document.getElementById('rename-category-select'),
+                document.getElementById('delete-category-select')
+            ];
+
+            // Clear existing options in dropdowns
+            dropdowns.forEach(dropdown => {
+                while (dropdown.firstChild) {
+                    dropdown.removeChild(dropdown.firstChild);
+                }
+            });
+
+            // Add new options to dropdowns
+            categories.forEach(category => {
+                dropdowns.forEach(dropdown => {
+                    const option = document.createElement('option');
+                    option.value = category.text;
+                    option.textContent = category.text;
+                    option.style.color = category.color;
+                    dropdown.appendChild(option);
+                });
+            });
+
+            console.log("Dropdowns updated successfully."); // Debugging statement
+        })
+        .catch(error => {
+            console.error("Error fetching categories:", error); // Debugging statement
+        });
+}
+ updateCategoryDropdowns
+</script>
+
+
+    <script>
+        document.getElementById('sizeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const pinSize = document.getElementById('pinSize').value;
+            const outlineSize = document.getElementById('outlineSize').value;
+
+            fetch('/update_sizes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ pin_size: parseInt(pinSize), outline_size: parseInt(outlineSize) }),
+            })
+            .then(response => response.json())
+            .then(data => console.log(data.message))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+	
+	
+   
+<!-- Object Type Restriction Section -->
+     
+
+<script>
+document.getElementById('object-type-restriction-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    var formData = {
+        marker: document.getElementById('allow-marker').checked,
+        rectangle: document.getElementById('allow-rectangle').checked,
+        circle: document.getElementById('allow-circle').checked,
+        polygon: document.getElementById('allow-polygon').checked
+    };
+
+    console.log('Submitting allowed object types:', formData);
+
+    fetch('/update-allowed-object-types', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log('Allowed object types updated:', result);
+        // Optionally, give feedback to the user
+    })
+    .catch(error => {
+        console.error('Error updating allowed object types:', error);
+    });
+});
+</script>
+<div style="text-align: center; margin: auto; width: 97%;">
+    <button class="toggle-button" id="toggle-management-filter">Wichtigen Ort markieren / Benutzerbeiträge verwalten</button>
+ 
+</div>
+
+
+<div id="management-filter-sectionx" style="display: block; overflow-y: auto; max-width: 97%; margin-left:auto; margin-bottom: 0; margin-top: 3px; margin-right: auto;">
+
+
+    <div class="filterx-container">
+        <input id="search-boxx" style="border-radius: 30px; padding: 5px; border: 1.5px solid black;" oninput="filterObjects()" placeholder="Notiztext..." type="text" />
+        <select id="color-filterx" style="border-radius: 30px; display:none; padding: 5px; border: 1.5px solid black;" onchange="filterObjects()">
+            <option style="border-radius: 30px; padding: 5px;" value="">
+                Alle Kategorien
+            </option>
+            <!-- Dynamically populate color options here -->
+        </select>
+        <select id="type-filterx" style="border-radius: 30px; padding: 5px; margin-bottom: 7.5px; border: 1.5px solid black;" onchange="filterObjects()">
+            <option value="">
+                Alle Markierungsarten
+            </option>
+			<option value="marker">
+                Marker
+            </option>
+			<option value="circle">
+                Kreis
+            </option>
+            <option value="rectangle">
+                Rechteck
+            </option>
+            <option value="polygon">
+                Polygon
+            </option>
+            <!-- Add more object types as needed -->
+        </select>
+    </div>
+
+    <!-- Object List Section -->
+    <div id="object-list" style="position: relative; max-height: 200px; overflow-y: auto;" class="custom-scrollbar">
+        <!-- Dynamically populated object list will go here -->
+        <!-- Sidebar -->
+    </div>
+	
+	<script>
+    var leafletLayers = {}; // Global object to store references to Leaflet layers
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/all-shapes').then(response => response.json()).then(data => {
+        displayObjects(data.shapes);
+
+        // Add event listeners after the objects are displayed
+        const objectElements = document.querySelectorAll('.object-item');
+        objectElements.forEach(element => {
+            element.addEventListener('click', function() {
+                const objectID = this.getAttribute('data-object-id');
+                console.log(`Clicked on object with ID: ${objectID}`);
+
+                var layer = leafletLayers[objectID];
+                console.log(`Retrieving Leaflet layer for object ID: ${objectID}`, layer);
+
+                if (layer) {
+                    centerMapOnObject(layer);
+                } else {
+                    console.error('No Leaflet layer found for object ID:', objectID);
+                }
+            });
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/all-shapes').then(response => response.json()).then(data => {
+        console.log('Objects loaded from the database:', data.shapes);
+        displayObjects(data.shapes);
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/all-shapes').then(response => response.json()).then(data => {
+        displayObjects(data.shapes);
+
+        const objectElements = document.querySelectorAll('.object-item');
+        objectElements.forEach(element => {
+            element.addEventListener('click', function() {
+                const objectID = this.getAttribute('data-object-id');
+                var layer = leafletLayers[objectID];
+
+                if (layer) {
+                    centerMapOnObject(layer);
+                    // Open the popup for the selected object
+                    if (layer.openPopup) {
+                        layer.openPopup();
+                    }
+                } else {
+                    console.error('No Leaflet layer found for object ID:', objectID);
+                }
+            });
+        });
+    });
+});
+
+
+// Function to populate the color filter with category names
+function populateColorFilterWithCategories() {
+    $.getJSON('/get-categories', function(categories) {
+        const colorFilter = document.getElementById('color-filter');
+        categories.forEach(function(category) {
+            if (category.color !== 'null') {
+                const option = document.createElement('option');
+                option.value = category.color;
+                option.textContent = category.text;
+                colorFilter.appendChild(option);
+            }
+        });
+    });
+}
+
+// Call the function to populate the color filter
+populateColorFilterWithCategories();
+
+function displayObjects(objects) {
+    const objectList = document.getElementById('object-list');
+    objectList.innerHTML = '';
+    objects.forEach(object => {
+
+        console.log('Processing object:', object);
+
+        const objectDiv = document.createElement('div');
+        objectDiv.style.display = 'flex';
+        objectDiv.style.alignItems = 'center';
+
+        const colorCircle = document.createElement('span');
+        colorCircle.style.width = '20px';
+        colorCircle.style.height = '20px';
+        colorCircle.style.borderRadius = '50%';
+        colorCircle.style.border = '2px solid white';
+        colorCircle.style.backgroundColor = object.shape_color;
+        colorCircle.style.display = 'inline-block';
+        colorCircle.style.marginRight = '5px';
+        colorCircle.style.flexShrink = '0';
+
+        objectDiv.appendChild(colorCircle);
+
+        const shapeTypeEmoji = document.createElement('span');
+        shapeTypeEmoji.style.marginRight = '5px';
+        shapeTypeEmoji.style.fontSize = '20px';
+        switch (object.shape_type) {
+            case 'marker':
+                shapeTypeEmoji.textContent = '📍';
+                break;
+            case 'rectangle':
+                shapeTypeEmoji.textContent = '◼️';
+                break;
+            case 'circle':
+                shapeTypeEmoji.textContent = '⚪';
+                break;
+            case 'polygon':
+                shapeTypeEmoji.textContent = '🔺';
+                break;
+        }
+        objectDiv.appendChild(shapeTypeEmoji);
+        objectDiv.classList.add('object-item');
+        objectDiv.setAttribute('data-object-id', object.id);
+        const shapeNote = document.createElement('span');
+        shapeNote.textContent = `${object.shape_note}`;
+        const currentMode = document.documentElement.classList.contains('light-mode') ? 'light' : 'dark';
+        shapeNote.style.color = currentMode === 'light' ? 'black' : 'black';
+        objectDiv.appendChild(shapeNote);
+
+        // Debugging to check if objectDiv is present
+        if (!objectDiv) {
+            console.error('objectDiv is not present.');
+        } else {
+            console.log('objectDiv is present:', objectDiv);
+        }
+
+   document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/all-shapes').then(response => response.json()).then(data => {
+        displayObjects(data.shapes);
+
+        const objectElements = document.querySelectorAll('.object-item');
+        objectElements.forEach(element => {
+            element.addEventListener('click', function() {
+                const objectID = this.getAttribute('data-object-id');
+                var layer = leafletLayers[objectID];
+
+                if (layer) {
+                    centerMapOnObject(layer);
+                    // Open the popup for the selected object
+                    if (layer.openPopup) {
+                        layer.openPopup();
+                    }
+                } else {
+                    console.error('No Leaflet layer found for object ID:', objectID);
+                }
+            });
+        });
+    });
+});
+
+        // Append the objectDiv to the objectList
+        objectList.appendChild(objectDiv);
+
+        // Add delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Löschen';
+        deleteButton.addEventListener('click', function() {
+            const objectID = object.id;
+            deleteObject(objectID);
+        });
+        objectDiv.appendChild(deleteButton);
+    });
+}
+
+
+
+function centerMapOnObject(layer) {
+    if (layer) {
+        if (layer.getLatLng) {
+            const latLng = layer.getLatLng();
+        } else if (layer.getBounds) {
+            const bounds = layer.getBounds();
+            const center = bounds.getCenter();
+        } else {
+            console.error('Layer does not have a getLatLng or getBounds method:', layer);
+        }
+    } else {
+        console.error('Invalid or undefined Leaflet layer object:', layer);
+    }
+}
+
+
+
+function deleteObject(objectId) {
+    console.log(`Deleting object: ${objectId}`);
+    fetch(`/api/shapes/${objectId}`, { method: 'DELETE' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log(`Object ${objectId} deleted successfully.`);
+                
+                // Remove the layer from the map
+                var layer = leafletLayers[objectId];
+                if (layer) {
+                    map.removeLayer(layer);
+                    delete leafletLayers[objectId]; // Remove from the tracking object
+                } else {
+                    console.error(`No layer found for object ID ${objectId} to remove from map.`);
+                }
+
+                // Optional: Update the object list displayed on the page
+                displayObjects(data.shapes);
+            } else {
+                console.error(`Failed to delete object ${objectId}.`);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting shape:', error);
+        });
+}
+
+
+
+function filterObjects() {
+    const searchQuery = document.getElementById('search-boxx').value.toLowerCase();
+    const colorFilter = document.getElementById('color-filterx').value;
+    const typeFilter = document.getElementById('type-filterx').value;
+
+    fetch('/api/shapes').then(response => response.json()).then(data => {
+        let filteredObjects = data.shapes;
+
+        if (colorFilter) {
+            filteredObjects = filteredObjects.filter(object => object.shape_color === colorFilter);
+        }
+
+        if (typeFilter) {
+            filteredObjects = filteredObjects.filter(object => object.shape_type === typeFilter);
+        }
+
+        if (searchQuery) {
+            filteredObjects = filteredObjects.filter(object => object.shape_note.toLowerCase().includes(searchQuery));
+        }
+
+        displayObjects(filteredObjects);
+    });
+}
+</script>
+ <div id="admin-map"></div>
+
+
+    <style>
+        #admin-map {
+            height: 1000px;
+            width: auto;
+			border-radius: 30px;
+        }
+    </style>
+
+<script>
+    var map = L.map('admin-map').setView([48.4102, 15.6022], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: 'Stimmungskompass boundary editing tool | © OpenStreetMap contributors'
+    }).addTo(map);
+
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    var drawControl = new L.Control.Draw({
+        edit: {
+            featureGroup: drawnItems
+        },
+        draw: {
+            polyline: true,
+            polygon: true,
+            circle: true,
+            marker: false,
+            rectangle: false,
+            circlemarker: false
+        }
+    });
+    map.addControl(drawControl);
+
+    var currentLayer = null; // Global variable to keep track of the current layer
+
+    map.on(L.Draw.Event.CREATED, function (e) {
+        var type = e.layerType,
+            layer = e.layer;
+        drawnItems.addLayer(layer);
+        currentLayer = layer; // Save the current layer
+
+        // Create a popup for adding a note and image
+        var popupContent = '<form id="shapeForm" enctype="multipart/form-data">' +
+                           '<label for="note">Note:</label>' +
+                           '<input type="text" id="note" name="note"><br>' +
+                           '<label for="image">Image:</label>' +
+                           '<input type="file" id="image" name="shape_image"><br>' +
+                           '<input type="button" value="Save" onclick="saveShapeData()">' +
+                           '</form>';
+        layer.bindPopup(popupContent).openPopup();
+    });
+
+    // Save shape data along with note and image
+    function saveShapeData() {
+        if (!currentLayer) {
+            console.error('No layer selected');
+            return;
+        }
+
+        var formData = new FormData(document.getElementById('shapeForm'));
+        var shapeData = currentLayer.toGeoJSON();
+        var shapeType = currentLayer instanceof L.Circle ? 'circle' : 'polygon';  // Adjust for your requirements
+        var radius = currentLayer instanceof L.Circle ? currentLayer.getRadius() : null;
+
+        formData.append('shape_data', JSON.stringify(shapeData));
+        formData.append('shape_type', shapeType);
+        formData.append('radius', radius);
+
+        fetch('/api/shapes', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Shape saved with ID:', data.id);
+            currentLayer.options.id = data.id; // Assign ID to layer for further operations
+            currentLayer = null; // Reset the currentLayer after saving
+        })
+        .catch(error => console.error('Error saving shape:', error));
+    }
+
+
+// Function to create a colored circle icon
+function createColoredCircleIcon(color) {
+    var svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+        <circle cx="16" cy="16" r="8" fill="${color}" />
+        <circle cx="16" cy="16" r="8" stroke="${color}" stroke-width="16" fill="none" stroke-opacity="0.5" />
+    </svg>`;
+
+    return L.icon({
+        iconUrl: `data:image/svg+xml;base64,${btoa(svgIcon)}`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+    });
+}
+
+// Global declaration of leafletLayers
+var leafletLayers = {};
+
+function addLayer(shape, color, note, imageLink) {
+    var layer;
+    var shapeType = shape.shape_type;
+    var shapeOptions = { color: color };
+
+    console.log('Adding shape:', shape);
+
+    if (shapeType === 'marker') {
+        var coords = shape.shape_data.geometry.coordinates;
+        var center = L.latLng(coords[1], coords[0]);
+        var customIcon = createColoredCircleIcon(color);
+        layer = L.marker(center, { icon: customIcon });
+    } else if (shapeType === 'circle') {
+        var coords = shape.shape_data.geometry.coordinates;
+        var center = L.latLng(coords[1], coords[0]);
+        var radius = shape.radius || 100; // Default radius if not provided
+        layer = L.circle(center, { color: color, radius: radius });
+    } else if (shapeType === 'polygon') {
+        if (shape.shape_data && shape.shape_data.geometry && Array.isArray(shape.shape_data.geometry.coordinates[0])) {
+            var latlngs = shape.shape_data.geometry.coordinates[0].map(coord => L.latLng(coord[1], coord[0]));
+            layer = L.polygon(latlngs, shapeOptions);
+        } else {
+            console.error('Shape data is invalid or missing for a polygon:', shape);
+        }
+       } else 
+       if (shapeType === 'rectangle') {
+        // Check if shape_data is properly structured for a rectangle
+        if (shape.shape_data && shape.shape_data.geometry && Array.isArray(shape.shape_data.geometry.coordinates)) {
+            var coordsArray = shape.shape_data.geometry.coordinates[0]; // Assuming the coordinates are in the first array
+            if (coordsArray.length >= 4) {
+                // Convert array of coordinates to array of LatLng objects
+                var latlngs = coordsArray.map(coord => L.latLng(coord[1], coord[0]));
+                layer = L.polygon(latlngs, { color: color }); // Using L.polygon to handle rectangle
+            } else {
+                console.error('Invalid rectangle coordinates format:', coordsArray);
+            }
+        } else {
+            console.error('Shape data is missing for a rectangle:', shape);
+        }
+    }
+
+    if (layer) {
+        var popupContent = `Note: ${note}<br>`;
+        if (imageLink) {
+            popupContent += `<img src="${imageLink}" alt="Image" style="width:100%;">`;
+        }
+        layer.bindPopup(popupContent);
+        drawnItems.addLayer(layer);
+
+        // Store the layer in leafletLayers with the shape's ID as the key
+        leafletLayers[shape.id] = layer;
+    }
+}
+
+// Load shapes from the database and add to the map
+$(document).ready(function() {
+    $.getJSON('/api/shapes', function(data) {
+        console.log('Loading shapes from database. Total shapes:', data.shapes.length);
+        data.shapes.forEach(function(shape) {
+            addLayer(shape, shape.shape_color, shape.shape_note, shape.shape_imagelink);
+        });
+        console.log('All shapes loaded from the database and added to dictionaries.');
+    });
+});
+</script>

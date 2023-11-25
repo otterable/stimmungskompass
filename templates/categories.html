@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Categories</title>
+<style>
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevents scrollbar within the iframe */
+}
+
+#category-choices {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center; /* Align items centrally */
+    height: calc(100% - 44.5px); /* Subtract 60px for the gap at the bottom */
+    margin: 0;
+    padding: 0 0 44.5px 0; /* 60px padding at the bottom */
+}
+
+.categorybutton {
+    opacity: 0; /* Set initial opacity to 0 */
+    font-weight: bold;
+    line-height: 1; /* Adjusted line-height */
+    cursor: pointer;
+    text-decoration: none;
+    display: flex; /* Changed to flexbox */
+    align-items: center; /* Vertically center content */
+    justify-content: center; /* Horizontally center content */
+    width: 97%; /* Adjusted width */
+    height: auto;
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+    transition: background-color 0.2s ease-in-out;
+    border-radius: 30px;
+    text-align: center;
+    border: none; /* Removes border */
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: 0.5px; /* Initial padding */
+    margin: 8px auto; /* Small vertical margin and auto horizontal margin for centering */
+}
+:root {
+    --outline-color-light: black; /* Outline color for light mode */
+    --outline-color-dark: white; /* Outline color for dark mode */
+}
+
+.categorybutton:hover {
+    filter: brightness(110%);
+    outline: 3px solid var(--outline-color-light); /* Use variable for outline color */
+}
+
+.categorybutton.selected {
+    filter: brightness(110%);
+    outline: 5px solid var(--outline-color-light); /* Use variable for outline color */
+}
+     
+        .categorybutton h3 {
+            margin: 0; /* Removes any default margin */
+            color: white;
+        }
+
+
+   /* Styles for the hamburger menu */
+    .hamburger-menu {
+        display: none; /* Initially hidden */
+        cursor: pointer;
+        font-size: 24px; /* Adjust as needed */
+		font-weight: bold;
+            margin: 8px 0; /* Increased vertical margin for more gap between elements */
+            line-height: 1; /* Adjusted line-height */
+            cursor: pointer;
+            text-decoration: none;
+            align-items: center; /* Vertically center content */
+            justify-content: center; /* Horizontally center content */
+            width: 100%;
+            height: auto;
+			color: white;
+			background-color: #3a3a3a;
+            box-sizing: border-box; /* Ensure padding and border are included in the width */
+            transition: background-color 0.2s ease-in-out;
+            border-radius: 30px;
+            text-align: center;
+            padding: 5px 5px; /* Adds padding to top and bottom */
+            border: none; /* Removes border */
+			    font-family: 'Roboto', sans-serif !important;
+
+        }
+
+    @media screen and (max-width: 768px) { /* Adjust breakpoint as needed */
+        .hamburger-menu {
+            display: block; /* Show only on mobile */
+        }
+
+        .categorybutton {
+            display: none; /* Initially hide buttons on mobile */
+        }
+    }
+	
+	
+    </style>
+</head>
+<body>
+<div class="hamburger-menu">☰ Kategorie auswählen</div>
+<div id="category-choices">
+<!-- BEGINNING OF CATEGORY EDITING AREA -->
+<button class="categorybutton" onclick="parent.setCategory('#FF7043')" style="background-color: #FF7043;"><h3>Dieser Ort gefällt mir.</h3></button>
+<button class="categorybutton" onclick="parent.setCategory('#B71C1C')" style="background-color: #B71C1C;"><h3>Hier fühle ich mich unsicher.</h3></button>
+<button class="categorybutton" onclick="parent.setCategory('#1565C0')" style="background-color: #1565C0;"><h3>Hier gibt es Probleme mit dem Parken.</h3></button>
+<button class="categorybutton" onclick="parent.setCategory('#4CAF50')" style="background-color: #4CAF50;"><h3>Hier verbringe ich gerne meine Freizeit.</h3></button>
+<button class="categorybutton" onclick="parent.setCategory('#4E342E')" style="background-color: #4E342E;"><h3>Dieser Ort braucht eine Verbesserung.</h3></button>
+<button class="categorybutton" onclick="parent.setCategory('#151515')" style="background-color: #151515;"><h3>An diesem Ort fehlt ein Service</h3></button><!-- ENDING OF CATEGORY EDITING AREA -->
+</div>
+<audio id="buttonClickAudio" preload="auto">
+<source src="static/buttonclick.mp3" type="audio/mp3"/>
+</audio>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const audio = document.getElementById('buttonClickAudio');
+      const categoryButtons = document.querySelectorAll('.categorybutton');
+
+      categoryButtons.forEach((button) => {
+        button.addEventListener('click', function() {
+          audio.play();
+        });
+      });
+    });
+  </script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const audio = document.getElementById('buttonClickAudio');
+    const categoryButtons = document.querySelectorAll('.categorybutton');
+	const categoryChoices = document.getElementById('category-choices');
+    const hamburgerMenu = document.querySelector('.hamburger-menu');
+	hamburgerMenu.addEventListener('click', function() {
+        console.log("Hamburger menu clicked");
+        // Send message to parent window to toggle overlay
+        parent.postMessage('toggleOverlay', '*');
+        toggleCategoryButtons();
+    });
+
+
+	
+    // Function to toggle display of category buttons
+    function toggleCategoryButtons() {
+        categoryButtons.forEach(button => {
+            button.style.display = button.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Adjust position for mobile view
+        if (getParentWidth() <= 768) {
+            if (categoryChoices.style.display === 'none' || !categoryChoices.style.display) {
+                // Calculate total height of all buttons
+                let totalHeight = Array.from(categoryButtons).reduce((acc, btn) => acc + btn.offsetHeight, 0);
+                // Position the div upwards by its own height
+                categoryChoices.style.bottom = totalHeight + 'px';
+            } else {
+                categoryChoices.style.bottom = '0';
+            }
+        }
+    }
+
+    // Event listener for category buttons
+    categoryButtons.forEach((button) => {
+        button.addEventListener('click', function() {
+            audio.play();
+            // Hide buttons after selection (optional)
+            if (getParentWidth() <= 768) { // Adjust breakpoint as needed
+                toggleCategoryButtons();
+            }
+        });
+    });
+
+    // Event listener for hamburger menu
+    hamburgerMenu.addEventListener('click', function() {
+	    console.log("Hamburger menu clicked");
+        toggleCategoryButtons();
+    });
+
+    // Function to get the width of the parent window
+    function getParentWidth() {
+        return parent ? parent.innerWidth : window.innerWidth;
+    }
+
+    // Initial check to hide/show hamburger menu based on parent window width
+    function adjustForScreenSize() {
+        if (getParentWidth() <= 768) {
+            hamburgerMenu.style.display = 'block';
+            categoryButtons.forEach(button => button.style.display = 'none');
+            categoryChoices.style.bottom = '0'; // Reset position
+        } else {
+            hamburgerMenu.style.display = 'none';
+            categoryButtons.forEach(button => button.style.display = 'block');
+        }
+    }
+
+    // Call once on load
+    adjustForScreenSize();
+
+    // Add resize listener to parent window
+    if (parent) {
+        parent.addEventListener('resize', adjustForScreenSize);
+    }
+});
+
+ document.addEventListener('DOMContentLoaded', adjustButtonPadding);
+
+function adjustButtonPadding() {
+    const categoryButtons = document.querySelectorAll('.categorybutton');
+    categoryButtons.forEach((button) => {
+        button.style.padding = '1px';
+        // Removed the immediate setting of opacity to 1
+    });
+}
+
+window.addEventListener('resize', adjustButtonPadding);
+
+function makeButtonsVisible() {
+    const categoryButtons = document.querySelectorAll('.categorybutton');
+    categoryButtons.forEach((button) => {
+        button.style.opacity = '1'; // Set opacity to 100%
+    });
+}
+
+window.makeButtonsVisible = makeButtonsVisible; // Expose the function to be callable from index.html
+
+
+</script>
+<script>
+    function applyCategoryButtonStyles() {
+        let isLightMode = localStorage.getItem('lightMode') === 'true';
+        // Update CSS variables based on the light or dark mode
+        document.documentElement.style.setProperty('--outline-color-light', isLightMode ? 'black' : 'white');
+        document.documentElement.style.setProperty('--outline-color-dark', isLightMode ? 'white' : 'black');
+
+        let buttons = document.querySelectorAll('.categorybutton');
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                let categoryMatch = this.getAttribute('onclick').match(/'([^']+)'/);
+                if (categoryMatch && categoryMatch[1]) {
+                    let category = categoryMatch[1];
+                    console.log('Button clicked, category:', category);
+                    updateSelectedButton(category); // Update the selected button immediately
+                    parent.postMessage({ type: 'selectCategory', category: category }, '*');
+                }
+            });
+        });
+    }
+
+    function updateSelectedButton(selectedCategory) {
+        const buttons = document.querySelectorAll('.categorybutton');
+        buttons.forEach(button => {
+            button.classList.toggle('selected', button.getAttribute('onclick').includes(selectedCategory));
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', applyCategoryButtonStyles);
+    window.addEventListener('storage', function(event) {
+        if (event.key === 'lightMode') {
+            applyCategoryButtonStyles();
+        }
+    });
+</script>
+
+</body></html>

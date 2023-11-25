@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+
+
+
+    <h2>Color Counts</h2>
+    <ul id="color-counts">
+        {% for color, count in color_counts.items() %}
+            <li>{{ color }}: {{ count }}</li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>
