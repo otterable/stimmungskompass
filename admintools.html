@@ -96,16 +96,16 @@
             <input type="color" id="create-category-color" />
             <button id="create-category">Erstellen</button>
 			   <div id="object-type-restriction-content" style="display: block;">
-        <h3>Objekttypauswahl einschränken:</h3>
-        <form id="object-type-restriction-form">
-            <div style="margin: auto; display: inline-block; text-align: left;">
-                <input type="checkbox" id="allow-marker" name="marker" checked> <label for="allow-marker">Marker</label><br>
-                <input type="checkbox" id="allow-rectangle" name="rectangle" checked> <label for="allow-rectangle">Rechteck</label><br>
-                <input type="checkbox" id="allow-circle" name="circle" checked> <label for="allow-circle">Kreis</label><br>
-                <input type="checkbox" id="allow-polygon" name="polygon" checked> <label for="allow-polygon">Polygon</label><br>
-                <button type="submit" style="margin-top: 20px;">Einschränken</button>
-            </div>
-        </form>
+    <h3>Objekttypauswahl einschränken:</h3>
+<form id="object-type-restriction-form">
+    <div style="margin: auto; display: inline-block; text-align: left;">
+        <input type="checkbox" id="allow-marker" name="marker" checked> <label for="allow-marker">Marker</label><br>
+        <input type="checkbox" id="allow-rectangle" name="rectangle" checked> <label for="allow-rectangle">Rechteck</label><br>
+        <input type="checkbox" id="allow-circle" name="circle" checked> <label for="allow-circle">Kreis</label><br>
+        <input type="checkbox" id="allow-polygon" name="polygon" checked> <label for="allow-polygon">Polygon</label><br>
+        <button type="submit" style="margin-top: 20px;">Einschränken</button>
+    </div>
+</form>
     </div>
         </div>
 		
@@ -522,6 +522,7 @@ function updateCategoryDropdowns() {
 <!-- Object Type Restriction Section -->
      
 
+
 <script>
 document.getElementById('object-type-restriction-form').addEventListener('submit', function(event) {
     event.preventDefault();
@@ -535,6 +536,15 @@ document.getElementById('object-type-restriction-form').addEventListener('submit
 
     console.log('Submitting allowed object types:', formData);
 
+    // Construct the popup message
+    var enabledTypes = [];
+    if (formData.marker) enabledTypes.push("Marker");
+    if (formData.rectangle) enabledTypes.push("Rechteck");
+    if (formData.circle) enabledTypes.push("Kreis");
+    if (formData.polygon) enabledTypes.push("Polygon");
+
+    var message = "Allowed marking types restricted to: " + enabledTypes.join(", ") + ".";
+
     fetch('/update-allowed-object-types', {
         method: 'POST',
         headers: {
@@ -545,7 +555,8 @@ document.getElementById('object-type-restriction-form').addEventListener('submit
     .then(response => response.json())
     .then(result => {
         console.log('Allowed object types updated:', result);
-        // Optionally, give feedback to the user
+        // Display the browser popup message
+        alert(message);
     })
     .catch(error => {
         console.error('Error updating allowed object types:', error);

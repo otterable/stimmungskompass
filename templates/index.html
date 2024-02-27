@@ -78,8 +78,8 @@ display:none !important;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: black; /* Black background */
-    color: white; /* White text color */
+    background-color: #111111; /* #111111 background */
+    color: #111111; /* #111111 text color */
     z-index: 9999; /* Ensure it's on top of other elements */
     display: flex;
     justify-content: center; /* Center horizontally */
@@ -105,8 +105,8 @@ display:none !important;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: black; /* Black background */
-    color: white; /* White text color */
+    background-color: #111111; /* #111111 background */
+    color: #111111; /* #111111 text color */
     z-index: 9999; /* Ensure it's on top of other elements */
     display: flex;
     justify-content: center; /* Center horizontally */
@@ -129,11 +129,11 @@ display:none !important;
 @media (min-width: 768px) {
     #map, #sidebar {
         position: absolute;
-        top: 15px;
+        top: 95px; /* Increased from 15px to 95px to accommodate the top bar's height */
         bottom: 15px;
-
         border-radius: 30px;
-        overflow: hidden;
+		    overflow-y: auto; /* Enables vertical scrolling */
+background-color: #d9d4c7;
     }
 
     #map {
@@ -141,25 +141,257 @@ display:none !important;
         right: calc(30% + 15px);
     }
 
-     #sidebar {
-        position: absolute;
-        width: calc(30% - 15px);
-        right: 15px;
-        top: 15px;
-        bottom: 15px;
-        padding: 10px;
-        border-radius: 30px;
-        overflow: hidden;
-        background: var(--sidebar-bg); /* Use variable for background */
+
+	/* Hamburger Menu Button */
+#hamburger-button {
+    display: none; /* Hidden by default */
+    font-size: 30px; /* Icon size */
+    color: white; /* Icon color */
+    background: none; /* No background */
+    border: none; /* No border */
+    cursor: pointer; /* Pointer cursor */
+}
+}
+
+@media only screen and (max-width: 1080px) {
+    .top-bar {
+        flex-direction: row; /* Align items horizontally */
+        justify-content: space-between; /* Space between items */
+        align-items: center; /* Vertically center items */
+        padding: 10px 15px; /* Consistent padding */
+    }
+
+    .top-bar a {
+        display: flex; /* Flex container for the logo */
+        align-items: center; /* Vertically center logo */
+        margin: 0; /* Remove any default margin */
+    }
+
+    .top-bar a .logo {
+        max-width: 270px; /* Adjust logo size */
+        max-height: 350px; /* Adjust height automatically */
+    }
+    #hamburger-button {
+        display: block; /* Show the button on mobile */
+        margin: 0; /* Remove any margin */
+        align-self: center; /* Explicitly center the button vertically */
+    }
+
+
+   
+        #nav-links {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+
+    #nav-links a {
+        padding: 20px; /* Padding for each link */
+        font-size: 24px; /* Font size for links */
+    }
+}
+}
+
+
+/* Mobile Devices */
+@media only screen and (max-width: 1080px) {
+    #hamburger-button {
+        display: block; /* Show the button on mobile */
+    }
+
+    .top-bar a .logo {
+        margin-left: auto; /* Adjust logo position */
+		margin-right: auto;
+    }
+
+    #nav-links {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+    #nav-links a {
+        padding: 20px; /* Larger clickable area */
+        font-size: 24px; /* Larger font size */
     }
 }
 
+@media only screen and (max-width: 1445px) {
+.top-bar a button {
+    transition: transform 0.3s ease; /* Transition for the transform property */
+    border-radius: 30px; /* If you want to keep the border-radius */
+	padding: 7px;
+    /* Add any other button-specific styles here */
+}
+
+}
+
+@media only screen and (max-width: 1080px) {
+    body {
+        font-size: 14px; /* Smaller font size */
+    }
+    .top-bar {
+        flex-direction: column; /* Stack items vertically */
+        height: auto; /* Adjust height automatically */
+    }
+    .form-container {
+        width: 90%; /* Full width with some margin */
+        padding: 20px; /* Smaller padding */
+    }
+    .publish-button {
+        font-size: 18px; /* Slightly smaller font size */
+        padding: 15px 0; /* Adjust padding */
+    }
+
+	
+
+
+/* Navigation Overlay */
+.nav-overlay {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed position */
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.9); /* Semi-transparent black */
+    overflow-x: hidden; /* Hide horizontal overflow */
+    transition: 0.5s; /* Smooth transition for opening/closing */
+    z-index: 1000; /* High z-index to ensure it's on top */
+}
+
+.nav-overlay-active .main-content {
+    pointer-events: none;
+}
+
+}
 @media (max-width: 768px) {
     .desktop-only {
         display: none;
     }
 }
 
+
+.top-bar {
+    background-color: #003056; /* Background color of the top bar */
+    height: 80px; /* Height of the top bar */
+    width: 100%; /* Full width of the screen */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px; /* Add padding to the left and right */
+    box-sizing: border-box; /* Include padding in width calculation */
+    align-items: center; /* This ensures vertical alignment */
+    z-index: 10000; /* Ensures the top bar is above other content */
+    position: fixed; /* Fixed positioning to keep the bar at the top */
+    top: 0; /* Align to the top */
+    left: 0; /* Align to the left */
+}
+
+.top-bar a .logo {
+    max-width: auto; /* Adjust this value as needed */
+    max-height: 80px; /* Ensure the logo fits within the bar's height */
+margin: auto;
+}
+
+/* Styles for buttons inside links in the top bar */
+.top-bar a button {
+    transition: transform 0.3s ease; /* Transition for the transform property */
+    border-radius: 30px; /* If you want to keep the border-radius */
+    /* Add any other button-specific styles here */
+}
+
+/* Hover effect for buttons inside links in the top bar */
+.top-bar a button:hover {
+    transform: scale(1.03); /* Scale up slightly on hover */
+}
+
+
+/* Hover effect for links in the top bar */
+.top-bar a:not(:has(button)):hover::after {
+    transform: scaleX(1); /* Show the underscore on hover */
+    transform-origin: left;
+}
+
+.top-bar a {
+    color: white;
+    text-decoration: none;
+    margin-right: 20px; /* Add spacing between links */
+    font-size: 18px; /* Increase text size */
+    font-weight: bold; /* Make text bold */
+    position: relative;
+    transition: color 0.3s ease, text-shadow 0.3s ease; /* Transition for color and text shadow */
+}
+
+
+/* Exclude the logo link from having the underline effect */
+.top-bar a[href="/"]:hover::after {
+    content: none;
+}
+/* Underline effect for links that do not contain the logo */
+.top-bar a:not(:has(> .logo))::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background-color: white;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s;
+}
+
+/* Additional styles for .logo to ensure it fits well in the top bar */
+.top-bar a .logo {
+    max-width: auto; /* Adjust this value as needed */
+    max-height: 80px; /* Ensure the logo fits within the bar's height */
+    margin: auto;
+}
+.top-bar a:hover {
+    color: #a8c0ff; /* Change color on hover */
+    text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.7); /* Add text shadow on hover */
+}
+
+.top-bar a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background-color: white;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s;
+}
+
+/* Hover effect for buttons inside links in the top bar */
+.top-bar a button:hover {
+    transform: scale(1.03); /* Scale up slightly on hover */
+}
+
+/* Underline effect for links that do not contain buttons */
+.top-bar a:not(:has(> button))::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 2px;
+    background-color: white;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s;
+}
+
+/* Hover effect to show underline for links that do not contain buttons */
+.top-bar a:not(:has(> button)):hover::after {
+    transform: scaleX(1);
+}
 
 
 #map {
@@ -198,7 +430,9 @@ body {
 #object-list::-webkit-scrollbar-thumb {
     background-color: #888; /* Customize the scrollbar thumb color for object list */
     border-radius: 3px; /* Add rounded corners for object list scrollbar */
+	display:none;
 }
+
 
 #object-list {
     overflow-y: auto; /* Enable scrolling for object list */
@@ -239,7 +473,7 @@ border-radius: 30px;"
 
 /* LEAFLET MAP ICONS CSS */
 .leaflet-control-zoom-in, .leaflet-control-zoom-out, .leaflet-draw-draw-polyline, .leaflet-draw-draw-polygon, .leaflet-draw-draw-rectangle, .leaflet-draw-draw-circle, .leaflet-draw-draw-marker, .leaflet-draw-draw-circlemarker, .leaflet-draw-edit-edit, .leaflet-draw-edit-remove {
-  background-color: var(--leaflet-control-bg-dark) !important; /* Use variable */
+  background-color: #f5f1e4 !important; /* Use variable */
   color: var(--leaflet-control-color-dark) !important; /* Use variable */
   border: none !important;
   font-size: 18px !important;
@@ -272,8 +506,8 @@ display: none !important;
 
 /* LEAFLET MAP ICON COLOR CHANGE WHEN DISABLED CSS START */
 .leaflet-disabled {
-  background-color: var(--leaflet-disabled-bg) !important;
-  color: var(--leaflet-disabled-color) !important;
+  background-color: #111111 !important;
+  color: #f5f1e4 !important;
 }
 
 /* LEAFLET MAP ICON COLOR CHANGE WHEN DISABLED CSS END */
@@ -321,7 +555,7 @@ display: none !important;
 
 .leaflet-control-layers::before {
     content: "";
-    background-image: var(--leaflet-control-layers-before-bg);
+  background-image: url("static/mapicon2.png");
     position: absolute;
     top: 0;
     left: 0;
@@ -333,8 +567,8 @@ display: none !important;
 }
 
 .leaflet-control-layers-expanded {
-    background-color: var(--leaflet-control-layers-expanded-bg) !important;
-    color: var(--leaflet-control-layers-expanded-text) !important;
+    background-color: #f5f1e4 !important;
+    color: #111111 !important;
 }
 
 
@@ -344,14 +578,14 @@ display: none !important;
 }
 
 .leaflet-control-layers-expanded .leaflet-control-layers-list {
-    color: var(--leaflet-control-layers-list-text) !important;
+    color: #111111 !important;
     font-size: 15px;
     font-weight: bold;
     padding: 10px;  /* Added padding here */
 }
 
 .leaflet-control-layers-selector {
-    color: var(--leaflet-control-layers-selector-text) !important;
+    color: #111111 !important;
     margin: 2px !important;
 }
 
@@ -379,19 +613,19 @@ display: none !important;
 	
 
     .leaflet-popup-content-wrapper {
-    background-color: var(--popup-bg-color) !important;
-    color: var(--popup-text-color) !important;
+    background-color: #111111 !important;
+    color: ##f5f1e4 !important;
     border-radius: 30px !important;
 	width: auto !important;
 }
 
    .leaflet-popup-content {
-    color: var(--popup-text-color) !important;
+    color: #f5f1e4 !important;
 }
 
 .leaflet-popup-tip {
     display: block; /* Optional: hides the tip arrow for a cleaner look */
-    background-color: var(--popup-bg-color) !important;
+    background-color: #111111 !important;
 }
 	
 	  .leaflet-popup-close-button {
@@ -406,8 +640,9 @@ display: none !important;
    #shape-note {
         border-radius: 10px;
 		border:none;
+		background-color: #f5f1e4;
         display: block;
-		color: #111111;
+		color: #111111 !important;
         width: 100%;
         box-sizing: border-box;
         max-height: 200px;
@@ -421,17 +656,17 @@ display: none !important;
 
 
 #shape-note::-webkit-input-placeholder { /* Chrome, Opera, Safari */
-    color: #111111;
+    color: #f5f1e4;
     opacity: 1; /* Override any default opacity */
 }
 
 #shape-note:-ms-input-placeholder { /* Internet Explorer 10-11 */
-    color: #111111;
+    color: #f5f1e4;
     opacity: 1; /* Override any default opacity */
 }
 
 #shape-note::-ms-input-placeholder { /* Microsoft Edge */
-    color: #111111;
+    color: #f5f1e4;
     opacity: 1; /* Override any default opacity */
 }
 
@@ -443,7 +678,7 @@ display: none !important;
     #save-note, #cancel-note {
         background-color: #4CAF50; /* Green for save, red for cancel */
         border: none;
-        color: white;
+        color: #f5f1e4;
         padding: 10px 20px;
         border-radius: 30px;
         cursor: pointer;
@@ -593,10 +828,10 @@ display: none !important;
     box-sizing: border-box;
     cursor: pointer;
     text-decoration: none;
-	    white-space: normal;
+	    #111111-space: normal;
     border-radius: 30px;
     transition: background-color 0.2s ease-in-out;
-    color: white;
+    color: #111111;
     text-align: center;
     line-height: 1;
     max-height: 40px;
@@ -604,6 +839,10 @@ display: none !important;
 }
 /* BUTTON MAIN UNIVERSAL CSS END */
 
+
+.leaflet-control-layers-before-bg {
+  background-image: url("static/mapicon2.png") !important;
+}
 
 
 /* BUTTON SMALL SIDEBAR CSS START */
@@ -618,11 +857,11 @@ display: none !important;
     box-sizing: border-box;
     cursor: pointer;
     text-decoration: none;
-	    white-space: normal;
+	    #111111-space: normal;
     border-radius: 30px;
-    background-color: var(--button-bg-color); /* Use a general variable */
+    background-color: #111111; /* Use a general variable */
     transition: background-color 0.2s ease-in-out;
-    color: white;
+    color: #f5f1e4;
     text-align: center;
     line-height: 1;
     max-height: 40px;
@@ -679,7 +918,7 @@ display: none !important;
     align-items: center;
     padding: 10px;
     border-radius: 30px;
-    background-color: white;
+    background-color: #111111;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
     z-index: 10;
 }
@@ -715,7 +954,7 @@ display: none !important;
     gap: 5px;
    background-color: var(--counter-pill-bg-color);
     color: var(--counter-pill-text-color);
-    white-space: nowrap;
+    #111111-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 80%; /* Increased maximum width */
@@ -872,36 +1111,21 @@ display: none !important;
 
 :root {
     /* Define default dark mode colors */
-    --counter-pill-bg-color: #111111;
-    --counter-pill-text-color: white;
-	--background-color: #111111; /* Dark mode background */
-    --text-color: white; /* Dark mode text */
-    --sidebar-bg: #111111; /* Dark mode sidebar background */
-    --counter-pill-bg-color: #111111; /* Dark mode counter pill background */
-    --counter-pill-text-color: white; /* Dark mode counter pill text */
-	--leaflet-control-bg-dark: #3a3a3a; /* Dark mode background color */
-	--leaflet-control-color-dark: white; /* Dark mode symbol color */
-	    --button-close-color-dark: white; /* Color for dark mode */
-    --button-close-color-light: black; /* Color for light mode */
-	 --outline-hover-color-dark: white; /* Outline color for dark mode */
-    --outline-hover-color-light: black; /* Outline color for light mode */
-  --popup-bg-color-light: rgba(244, 244, 237, 1);
-    --popup-text-color-light: black;
+    --counter-pill-bg-color: #f5f1e4;
+    --counter-pill-text-color: #111111;
+	--background-color: #f5f1e4; /* Dark mode background */
+    --text-color: #111111; /* Dark mode text */
+    --counter-pill-bg-color: #f5f1e4; /* Dark mode counter pill background */
+    --counter-pill-text-color: #111111; /* Dark mode counter pill text */
+	--leaflet-control-bg-dark: #d9d4c7; /* Dark mode background color */
+	--leaflet-control-color-dark: #111111; /* Dark mode symbol color */
+	    --button-close-color-dark: #111111; /* Color for dark mode */
+    --button-close-color-light: #111111; /* Color for light mode */
+	 --outline-hover-color-dark: #111111; /* Outline color for dark mode */
+    --outline-hover-color-light: #111111; /* Outline color for light mode */
+    --popup-text-color-light: #111111;
     --popup-bg-color-dark: rgba(17, 17, 17, 1);
-    --popup-text-color-dark: white;
-}
-
-.light-mode {
-    /* Define light mode colors */
-    --counter-pill-bg-color: #f3f4f8;
-    --counter-pill-text-color: black;
-	--background-color: #ffffff; /* Light mode background */
-    --text-color: black; /* Light mode text */
-    --sidebar-bg: #EDF2F4; /* Light mode sidebar background */
-    --counter-pill-bg-color: #f3f4f8; /* Light mode counter pill background */
-    --counter-pill-text-color: black; /* Light mode counter pill text */
-	--leaflet-control-bg-light: #f3f4f8; /* Light mode background color */
-	--leaflet-control-color-light: black; /* Light mode symbol color */
+    --popup-text-color-dark: #111111;
 }
 
  .leaflet-draw-draw-polyline, .leaflet-draw-draw-polygon, .leaflet-draw-draw-rectangle, .leaflet-draw-draw-circle, .leaflet-draw-draw-marker, .leaflet-draw-draw-circlemarker, .leaflet-draw-edit-edit, .leaflet-draw-section {
@@ -1024,19 +1248,19 @@ margin-bottom: 50px;
 
     .categorybutton:hover {
         filter: brightness(115%);
-        outline: 3px solid white;
+        outline: 3px solid #111111;
         outline-offset: -3px;
     }
 
     .categorybutton.selected {
         filter: brightness(115%);
-        outline: 5px solid white;
+        outline: 5px solid #111111;
         outline-offset: -5px;
     }
      
         .categorybutton h3 {
             margin: 0; /* Removes any default margin */
-            color: white;
+            color: #111111;
         }
 		
 .button-container {
@@ -1094,7 +1318,9 @@ margin-bottom: 50px;
         margin-bottom: 15px;
         overflow: hidden;
 		width: auto;
-		background: var(--sidebar-bg); /* Use variable for background */
+		    overflow-y: auto; /* Enables vertical scrolling */
+
+background-color: #d9d4c7 !important;
     }
 
 #sidebar-mobileheader {
@@ -1109,7 +1335,7 @@ margin-bottom: 50px;
     padding: 7.5px;
     max-height: 81px;
     z-index: 500!important; /* High z-index */
-    background: var(--sidebar-bg); /* Use variable for background */
+    background-color: #d9d4c7; /* Use variable for background */
     width: auto; /* Fixed width for testing */
     display: block !important; /* Force display */
 }
@@ -1136,6 +1362,7 @@ margin-bottom: 50px;
 
 @media (max-width: 768px) {
     #counter-pill {
+	display:none;
         padding: 8px 15px; /* Increased left and right padding */
         font-size: 3vw;
         top: 5.5%;
@@ -1181,10 +1408,10 @@ margin-bottom: 50px;
 
 /* Media query for tablet devices */
 @media (min-width: 768px) and (max-width: 1024px) {
-    #map {
+  #map {
         left: 15px; /* Consistent margin from the left */
         right: calc(40% + 0px); /* Adjusting for sidebar width and right margin */
-        top: 15px; /* Consistent margin from the top */
+        top: 95px; /* Increased from 15px to 95px to accommodate the top bar's height */
         bottom: 15px; /* Consistent margin from the bottom */
         border-radius: 30px; /* Maintain border radius */
     }
@@ -1202,11 +1429,13 @@ margin-bottom: 50px;
     #sidebar {
         width: calc(40% - 30px); /* Sidebar takes up 40% width minus the total horizontal margins */
         right: 15px; /* Consistent margin from the right */
-        top: 15px; /* Consistent margin from the top */
+        top: 95px; /* Increased from 15px to 95px to accommodate the top bar's height */
         bottom: 15px; /* Consistent margin from the bottom */
         padding: 10px; /* Maintain padding */
+		    overflow-y: auto; /* Enables vertical scrolling */
+
         border-radius: 30px; /* Maintain border radius */
-		background: var(--sidebar-bg); /* Use variable for background */
+        background-color: #d9d4c7 !important; /* Use variable for background */
     }
 	
 }
@@ -1229,7 +1458,7 @@ margin-bottom: 50px;
     }
 
     .filter-container {
-        background: white;
+        background: #111111;
         padding: 20px;
         border-radius: 10px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -1249,17 +1478,35 @@ margin-bottom: 50px;
 }
  </style>
 <body>
+
+
+<div class="top-bar">
+    <a href="/">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+    </a>  
+    <button id="hamburger-button">&#9776;</button>
+
+    <div id="nav-overlay" class="nav-overlay">
+        <div id="nav-links">
+            <a href="/karte">Karte</a>
+            <a href="/list">Beiträge</a>
+            <a href="/beitraege">Beitrag hinzufügen</a>
+            <a href="/erfolge">Erfolge</a>
+            <a href="/ueber">Über</a>
+            <a href="/opendata">Open Data</a>
+
+          
+        </div>
+    </div>
+</div>
+
+
+<div>
     <div id="mobileCategoryOverlay"></div>
 
-<div id="sidebar-mobileheader" style="display: none;">
-<img class="logo-img appear-on-mobile" src="static/logo_long.png" style="display: none; max-width: 97%; height: auto; display: block; margin-bottom: 0px; border-radius: 0px;"/>
-<h3 class="appear-on-mobiledisabled resistant-h3" style="display: none; color: white; text-align: center; margin-top: 5px;">
-    Wie stehen Sie zu den Orten in Ihrer Gemeinde?
-   </h3>
-<h3 class="appear-on-mobiledisabled resistant-h3" style="display: none; color: white; text-align: center; margin-top: -12px; margin-bottom: 7px">
-    Lassen Sie es uns auf dieser Karte wissen!
-   </h3>
-</div>
+
+
+
 <div id="map">
 <!-- Inside the map div -->
 <div id="counter-pill">
@@ -1287,7 +1534,6 @@ margin-bottom: 50px;
 <?php SIDEBAR BODY START ?>
 <div id="sidebar">
 <?php LOGO START ?>
-<img class="logo-img hide-on-mobile" src="static/logo_long.png" style="max-width: 97%; height: auto; display: block; margin-bottom: 7px; border-radius: 0px;"/>
 <?php LOGO END ?>
 <?php WEBSITE DESCRIPTION START ?>
 <h3 class="hide-on-mobile resistant-h3" style="text-align: center; margin-top: 5px;">
@@ -1305,13 +1551,11 @@ margin-bottom: 50px;
 <div class="smalloptionsmenutop" style="display: flex; align-items: center; justify-content: center;">
 <div class="left-container">
 <!-- This button shows the user a list of existing pins -->
-<div class="pinlist-div" id="pinlistdiv" onclick="toggleSearchFilter()" style="border-radius: 30px;">
+<div class="pinlist-div" id="pinlistdiv" onclick="toggleSearchFilter()" style="border-radius: 30px; margin-right: 5px; margin-left: 5px;">
 <img src="static/pinlisticon.png"/>
 </div>
 <!-- This button shows the user a list of existing pins -->
-<div class="info-div" id="infoDiv" style="border-radius: 30px; margin-right: 5px; margin-left: 5px;">
-<img src="static/infoicon.png"/>
-</div>
+
 </div>
 <div class="button-s" id="buttonS" onclick="addAndRemoveClass()" style="width: auto; height: auto; padding: 15px;">
 <h3>
@@ -1319,9 +1563,7 @@ margin-bottom: 50px;
      </h3>
 </div>
 <div class="right-container">
-<div class="lightswitch-div" id="lightswitchDiv" style="border-radius: 30px; margin-left: 5px;">
-<img src="static/sunicon.png"/>
-</div>
+
 <div class="key-div" id="keyDiv" style="border-radius: 30px; margin-left: 5px;">
 <img src="static/keyicon.png"/>
 </div>
@@ -1331,14 +1573,14 @@ margin-bottom: 50px;
 <!-- Search and Filter Section -->
 <div id="search-filter-section" style="display: none; max-height: 350px; overflow-y: auto; max-width: 97%; margin-left:auto; margin-bottom: 0; margin-top: 3px; margin-right: auto;">
     <div class="filter-container">
-        <input id="search-box" style="border-radius: 30px; padding: 5px; border: 1.5px solid black;" oninput="filterObjects()" placeholder="Notiztext..." type="text" />
-        <select id="color-filter" style="border-radius: 30px; padding: 5px; border: 1.5px solid black;" onchange="filterObjects()">
+        <input id="search-box" style="border-radius: 30px; padding: 5px; border: 1.5px solid #111111;" oninput="filterObjects()" placeholder="Notiztext..." type="text" />
+        <select id="color-filter" style="border-radius: 30px; padding: 5px; border: 1.5px solid #111111;" onchange="filterObjects()">
             <option style="border-radius: 30px; padding: 5px;" value="">
                 Alle Kategorien
             </option>
             <!-- Dynamically populate color options here -->
         </select>
-        <select id="type-filter" style="border-radius: 30px; padding: 5px; margin-bottom: 7.5px; border: 1.5px solid black;" onchange="filterObjects()">
+        <select id="type-filter" style="border-radius: 30px; padding: 5px; margin-bottom: 7.5px; border: 1.5px solid #111111;" onchange="filterObjects()">
             <option value="">
                 Alle Markierungsarten
             </option>
@@ -1366,7 +1608,7 @@ margin-bottom: 50px;
 
 </div>
 <?php CITY LOGO START ?>
-<img class="hide-on-mobile resistant-image" id="overlay-image" src="static/overlay.jpg" style="max-width: 97%; height: auto; display: block; margin-left:auto; margin-right:auto; margin-top: 3px; margin-bottom: 0px; border-radius: 30px; max-height: 368px;"/>
+<img class="hide-on-mobile resistant-image" id="overlay-image" src="static/overlay.jpg" style="max-width: 97%; height: auto; display: block; margin-left:auto; margin-right:auto; margin-top: 4px; margin-bottom: 4px; border-radius: 30px; max-height: 368px;"/>
 <?php CITY LOGO END ?>
 
 
@@ -1396,6 +1638,7 @@ margin-bottom: 50px;
 <?php CATEGORIES PULL END ?>
 </div>
 <?php SIDEBAR BODY END ?>
+</div>
 
 <script>
 // Initialize the map
@@ -2263,45 +2506,6 @@ map.on('draw:deletestop', function(event) {
 
   
 <script>
-   console.log("Dark and light mode switcher successfully loaded.");
-
-    function areCookiesEnabled() {
-        return document.getElementById("enableCookies")?.checked;
-    }
-
-    function setCookie(name, value, days) {
-        if (!areCookiesEnabled()) {
-            console.log(`Cookie 3: Not permitted to set '${name}' cookie.`);
-            return;
-        }
-        var expires = "";
-        if (days) {
-            var date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
-        console.log(`Cookie 3: Saved '${name}' cookie.`);
-    }
-
-    function getCookie(name) {
-        if (!areCookiesEnabled()) {
-            console.log(`Cookie 3: Not permitted to access '${name}' cookie.`);
-            return null;
-        }
-        var nameEQ = name + "=";
-        var ca = document.cookie.split(';');
-        for(var i = 0; i < ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) == 0) {
-                console.log(`Cookie 3: Loaded '${name}' cookie.`);
-                return c.substring(nameEQ.length, c.length);
-            }
-        }
-        return null;
-    }
-
 function refreshCircleElements() {
     // Assuming your objects are stored and can be retrieved again
     // You might need to adjust this to fit your application's structure
@@ -2312,136 +2516,17 @@ function refreshCircleElements() {
         });
 }
 	
-    let isLightMode = localStorage.getItem('lightMode') === 'true';
-
-    function applyCloseButtonColor() {
-        const closeButton = document.getElementById('closeButton');
-        if (closeButton) {
-            const closeButtonColor = getComputedStyle(document.documentElement).getPropertyValue('--button-close-color').trim();
-            closeButton.style.color = closeButtonColor;
-        }
-    }
-
-    function updatePopupStyles() {
-    const popup = document.getElementById("info-popup");
-    if (popup) {
-        popup.style.backgroundColor = isLightMode ? "rgba(244, 244, 237, 1)" : "rgba(17, 17, 17, 1)";
-        popup.style.color = isLightMode ? "black" : "white";
-    }
-}
 
 
-    function getDarkModeProperties() {
-        return {
-            '--background-color': '#1b1b1b',
-            '--category-button-outline': 'white',
-            '--text-color': 'white',
-            '--button-bg-color': '#3a3a3a', // Dark mode button background
-            '--tool-btn-hover-outline': '3px solid white', // Dark mode hover outline
-            '--tool-btn-selected-outline': '5px solid white', // Dark mode selected outline
-            '--leaflet-control-bg-dark': '#3a3a3a',
-            '--leaflet-control-color-dark': 'white',
-            '--sidebar-bg': '#111111',
-            '--leaflet-disabled-bg': '#111111',
-            '--leaflet-disabled-color': 'white',
-            '--popup-bg-color': '#111111',
-            '--popup-text-color': 'white',
-            '--counter-pill-bg-color': '#111111',
-            '--counter-pill-text-color': 'white',
-            '--leaflet-control-layers-expanded-bg': '#111111',
-            '--leaflet-control-layers-expanded-text': 'white',
-            '--leaflet-control-layers-selector-text': 'white',
-            '--leaflet-control-layers-list-text': 'white',
-            '--leaflet-control-layers-before-bg': 'url("static/mapicon2.png")',
-            '--button-close-color': 'var(--button-close-color-dark)'
-        };
-    }
-
-    function getLightModeProperties() {
-        return {
-            '--background-color': '#ffffff',
-            '--category-button-outline': 'black',
-            '--text-color': 'black',
-            '--button-bg-color': '#111111', // Light mode button background
-            '--tool-btn-hover-outline': '3px solid #111111', // Outline for hover in light mode
-            '--tool-btn-selected-outline': '5px solid #111111', // Outline for selected in light mode
-            '--leaflet-control-bg-light': '#f3f4f8',
-            '--leaflet-control-color-light': 'black',
-            '--sidebar-bg': '#EDF2F4',
-            '--leaflet-disabled-bg': '#EDF2F4',
-            '--leaflet-disabled-color': 'black',
-            '--popup-bg-color': '#ffffff',
-            '--popup-text-color': 'black',
-            '--counter-pill-bg-color': '#f3f4f8',
-            '--counter-pill-text-color': 'black',
-            '--leaflet-control-layers-expanded-bg': '#f3f4f8',
-            '--leaflet-control-layers-expanded-text': 'black',
-            '--leaflet-control-layers-selector-text': 'black',
-            '--leaflet-control-layers-list-text': 'black',
-            '--leaflet-control-layers-before-bg': 'url("static/mapicon2b.png")',
-            '--button-close-color': 'var(--button-close-color-light)'
-        };
-    }
-
-function setThemeStyles(mode) {
-    var themeProperties = mode === 'light' ? getLightModeProperties() : getDarkModeProperties();
-    for (var property in themeProperties) {
-        document.documentElement.style.setProperty(property, themeProperties[property]);
-    }
-	
-	   // Additional logic for setting popup-specific properties
-    document.documentElement.style.setProperty('--popup-bg-color', mode === 'light' ? 'var(--popup-bg-color-light)' : 'var(--popup-bg-color-dark)');
-    document.documentElement.style.setProperty('--popup-text-color', mode === 'light' ? 'var(--popup-text-color-light)' : 'var(--popup-text-color-dark)');
 
 
-        // Update the hover outline color based on the mode
-        var hoverOutlineColor = mode === 'light' ? 'var(--outline-hover-color-light)' : 'var(--outline-hover-color-dark)';
-        document.documentElement.style.setProperty('--outline-hover-color', hoverOutlineColor);
-        console.log("Mode set to " + mode + ", hover outline color: " + hoverOutlineColor);
-
-        updateImageSources(mode); // Ensure this function is called to update images
-        applyCloseButtonColor();
-        updateObjectItemTextColor(); // Update text color immediately after setting theme
-		updatePopupStyles(); // Added updatePopupStyles here
-
-	}
-
-    function updateImageSources(mode) {
-        console.log("Updating image sources for mode:", mode);
-        setImgSrc('.logo-img', mode === 'light' ? 'static/logo_long2.png' : 'static/logo_long.png');
-        setImgSrc('#pinlistdiv img', mode === 'light' ? 'static/pinlisticon2.png' : 'static/pinlisticon.png');
-        setImgSrc('#infoDiv img', mode === 'light' ? 'static/infoicon2.png' : 'static/infoicon.png');
-        setImgSrc('#lightswitchDiv img', mode === 'light' ? 'static/sunicon2.png' : 'static/sunicon.png');
-        setImgSrc('#keyDiv img', mode === 'light' ? 'static/keyicon2.png' : 'static/keyicon.png');
-    }
-
-    function setImgSrc(selector, src) {
-        console.log("Setting image source for", selector, "to", src);
-        document.querySelectorAll(selector).forEach(function (element) {
-            element.src = src;
-        });
-    }
 
 
-    function updateObjectItemTextColor() {
-        const objectItems = document.querySelectorAll('.object-item span');
-        objectItems.forEach(item => {
-            item.style.color = isLightMode ? 'black' : 'white';
-        });
-    }
 
-function toggleLightMode() {
-    isLightMode = !isLightMode;
-    localStorage.setItem('lightMode', isLightMode);
-    setThemeStyles(isLightMode ? 'light' : 'dark');
+    
 
-    // Directly update the popup's style
-    const popup = document.getElementById("info-popup");
-    if (popup) {
-        popup.style.backgroundColor = isLightMode ? "rgba(244, 244, 237, 1)" : "rgba(17, 17, 17, 1)";
-        popup.style.color = isLightMode ? "black" : "white";
-    }
-}
+
+
 
 
 
@@ -2477,7 +2562,7 @@ function toggleLightMode() {
         const objectList = document.getElementById('object-list');
         objectList.innerHTML = '';
         objects.forEach(object => {
-            const objectDiv = createObjectDiv(object, isLightMode ? 'light' : 'dark');
+            const objectDiv = createObjectDiv(object, 'dark');
             objectDiv.addEventListener('click', function () {
                 handleClickOnObjectItem(object.id);
             });
@@ -2504,7 +2589,6 @@ function toggleLightMode() {
         return objectDiv;
     }
 	
-	
 
    function createColorCircle(color) {
         const circleElement = document.createElement('span');
@@ -2516,8 +2600,7 @@ function toggleLightMode() {
         circleElement.style.marginRight = '5px';
         circleElement.style.flexShrink = '0';
 
-        // Set border color based on the isLightMode variable
-        circleElement.style.border = isLightMode ? '2px solid white' : '2px solid white';
+        circleElement.style.border = '2px solid #111111';
 
         return circleElement;
     }
@@ -2546,7 +2629,7 @@ function toggleLightMode() {
     function createShapeNote(note, mode) {
         const shapeNote = document.createElement('span');
         shapeNote.textContent = note;
-        shapeNote.style.color = mode === 'light' ? 'black' : 'white';
+        shapeNote.style.color = mode === '#111111'
         return shapeNote;
     }
 
@@ -2572,44 +2655,21 @@ function toggleLightMode() {
 
     // DOMContentLoaded Event Listener
 
-    document.addEventListener('DOMContentLoaded', function () {
-        isLightMode = localStorage.getItem('lightMode') === 'true';
-        setThemeStyles(isLightMode ? 'light' : 'dark');
-    });
+  
 
-    document.getElementById('lightswitchDiv').addEventListener('click', toggleLightMode);
 	
 	document.addEventListener('DOMContentLoaded', function () {
-    let isLightMode = getCookie('lightMode') === 'true';
 
    fetch('/api/all-shapes')
         .then(response => response.json())
         .then(data => {
             displayObjects(data.shapes);
-            updateObjectItemTextColor(isLightMode ? 'light' : 'dark');
         });
 
-    document.getElementById('lightswitchDiv').addEventListener('click', toggleLightMode);
 
 
 
 
-    if (areCookiesEnabled()) {
-        isLightMode = getCookie2('lightMode') === 'true';
-    }
-
-    // Function to provide the current theme state
-    window.getCurrentTheme = function() {
-        let currentTheme = localStorage.getItem('lightMode') === 'true';
-        console.log("Current theme is light mode:", currentTheme);
-        return currentTheme;
-    };
-
-    function setThemeStyles(mode) {
-        // Set the theme styles based on the mode
-    }
-
-    // COOKIE 2 Functions
 
     populateColorFilterWithCategories();
 
@@ -2737,13 +2797,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
   </script>
+  
+  <script>
+        // JavaScript function to toggle the login popup
+        function togglePopup() {
+            const popup = document.getElementById('loginPopup');
+            popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Your existing addAndRemoveClass function
+        function addAndRemoveClass() {
+    // Get the button element
+    const buttonMenu = document.getElementById('buttonMenu');
+
+    // Add the 'selected' class
+
+    setTimeout(function() {
+        buttonMenu.classList.remove('selected');
+    }, 15000);
+}
+    </script>
+	
 <?php BUTTON CLICK AUDIO EFFECTS END ?>
 <?php BOTTOM RIGHT CORNER INFOPOPUP LOGIC START ?>
 <script>
    document.addEventListener("DOMContentLoaded", () => {
     const popupTexts = {  
         'Login': {
-			title: '<span style="color: #35b7ff;">Admin-Zugriff</span>',
+			title: '<span style="color: #003056;">Admin-Zugriff</span>',
             text: `<form id="loginForm" onsubmit="handleLogin(); return false;">
                 <label for="username">Benutzer:</label>
                 <input type="text" id="username" name="username"><br><br>
@@ -2754,7 +2835,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <label for="otp">OTP 2FA Token:</label>
                 <input type="text" id="otp" name="otp"><br><br>
 
-                <button type="submit" class="button-s" style="padding: 20px; background-color: #35b7ff; border: none; cursor: pointer;">
+                <button type="submit" class="button-s" style="padding: 20px; background-color: #003056; border: none; cursor: pointer;">
                     <span style="position: relative; top: 0px;">Anmelden</span>
                 </button>
             </form>`,
@@ -2775,7 +2856,7 @@ document.addEventListener('DOMContentLoaded', function() {
         persist: true  // Keep this popup visible forever
 		},
         'Overlay': {
-            title: '<span style="color: #35b7ff;">Dieses Bild wird ersetzt:</span>',
+            title: '<span style="color: #003056;">Dieses Bild wird ersetzt:</span>',
             text: '<img src="static/overlay.jpg" alt="Overlay Image" style="max-width: 100%; max-height: 400px; width: auto; height: auto; border-radius: 30px;">',
             color: '#ffffff',
             persist: true  // Keep this popup visible forever
@@ -2788,34 +2869,12 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         'Willkommen beim Stimmungskompass!': {
             title: 'Willkommen beim Stimmungskompass!',
-            text: 'Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.<br><br>Sie können Hinweise an Orten anbringen, die Sie entweder als angenehm oder problematisch empfinden.<br><br><span style="color: #f77f00; font-weight: bold;">Und so funktioniert es:</span><br><span style="color: #f77f00; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.<br><span style="color: #f77f00; font-weight: bold;">2.</span> Platzieren Sie einen Pin auf der Karte.<br><span style="color: #f77f00; font-weight: bold;">3.</span> Teilen Sie uns Ihre Meinung mit!<br><br><span style="font-weight: bold;">Ihre Beiträge sind anonym und können von der Gemeinde zur Verbesserung des öffentlichen Raums genutzt werden.</span> ',
-            color: '#f77f00'
+            text: 'Diese Karte ist eine bequeme und einfache Möglichkeit, Ihrer Stadt zu zeigen, wie Sie sich darin fühlen.<br><br>Sie können Hinweise an Orten anbringen, die Sie entweder als angenehm oder problematisch empfinden.<br><br><span style="color: #003056; font-weight: bold;">Und so funktioniert es:</span><br><span style="color: #003056; font-weight: bold;">1.</span> Wählen Sie eine Kategorie.<br><span style="color: #003056; font-weight: bold;">2.</span> Platzieren Sie einen Pin auf der Karte.<br><span style="color: #003056; font-weight: bold;">3.</span> Teilen Sie uns Ihre Meinung mit!<br><br><span style="font-weight: bold;">Ihre Beiträge sind anonym und können von der Gemeinde zur Verbesserung des öffentlichen Raums genutzt werden.</span> ',
+            color: '#003056'
         },
 		<!-- CATEGORY EDITING AREA START -->
      
  
-'Stimmungskompass grüßt Sie!': {
-    title: '<div style="text-align: center;">Stimmungskompass grüßt Sie!</div>',
-    text: `<div class="desktop-only" style="text-align: center;">Der Kompass ist eine nette Möglichkeit, Ihre Meinung über Ihre Stadt zu äußern.</div>
-           <div class="desktop-only" style="text-align: center;">Für weitere Informationen klicken Sie auf „Video ansehen“ oder auf die Hilfeschaltflächen.</div><br>
-           <div class="iframe-container">
-              <iframe src="https://www.youtube.com/embed/RnCeDG0wzy4" frameborder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowfullscreen style="border-radius: 30px;"></iframe>
-           </div><br>
-           <div class="desktop-only" style="display: flex; align-items: center; justify-content: center;">
-               <div id="dontShowAgainContainer" style="display: block;">
-                   <button id="dontShowAgain" style="padding: 8px; border-radius: 30px; background-color: #2d9cd9; border: none; cursor: pointer; color: white;">
-Nicht mehr anzeigen                   </button>
-               </div>
-               <div>
-                   <input type="checkbox" id="enableCookies" name="enableCookies" style="display:none" checked>
-                   <label for="enableCookies" style="display:none">Cookies zulassen</label>
-               </div>
-           </div>`,
-    color: '#f77f00',
-    persist: true,
-},
 
 
 
@@ -2833,14 +2892,13 @@ Nicht mehr anzeigen                   </button>
         const existingPopup = document.getElementById("info-popup");
         if (existingPopup) {
             existingPopup.remove();
-			    updatePopupStyles();
 
         }
 		
 		const popup = document.createElement("div");
 popup.id = "info-popup";
-popup.style.backgroundColor = isLightMode ? "rgba(244, 244, 237, 1)" : "rgba(17, 17, 17, 1)";
-popup.style.color = isLightMode ? "black" : "white";
+popup.style.backgroundColor = "white";
+popup.style.color = "#111111";
 popup.style.border = "2px solid rgba(0,0,0,0.2)"; // Added border style
 popup.style.borderRadius = "30px";
 popup.style.position = "absolute";
@@ -3038,54 +3096,9 @@ function getCookie1(name) {
 
 	// COOKIES ENABLING FEATURE, CURRENTLY ONLY SUPPORTS COOKIE 1
  // Function to show the test popup on page load
-function showTestPopup() {
-    if (!getCookie1('noTestPopup')) {
-        const info = popupTexts['Stimmungskompass grüßt Sie!'];
-        showPopup(info);
 
-        setTimeout(() => {
-            const dontShowButton = document.getElementById("dontShowAgain");
-            const enableCookiesCheckbox = document.getElementById("enableCookies");
-            const dontShowAgainContainer = document.getElementById("dontShowAgainContainer");
 
-            // Function to toggle the display of "Don't show again" button
-            function toggleDontShowButton() {
-                dontShowAgainContainer.style.display = enableCookiesCheckbox.checked ? "block" : "none";
-            }
-
-            // Initial toggle on popup display
-            toggleDontShowButton();
-
-            // Event listener for the "Enable Cookies" checkbox
-            if (enableCookiesCheckbox) {
-                enableCookiesCheckbox.addEventListener('change', function() {
-                    console.log("Enable Cookies Checkbox is now " + (this.checked ? "checked" : "unchecked"));
-                    toggleDontShowButton();
-                });
-            }
-
-            // Event listener for the "Don't show again" button
-            if (dontShowButton) {
-                dontShowButton.addEventListener('click', function() {
-                    if (enableCookiesCheckbox && enableCookiesCheckbox.checked) {
-                        setCookie1('noTestPopup', 'true', 7); // Set the cookie for 7 days
-                    } else {
-                        console.log("Cookies are disabled. Not setting the cookie.");
-                    }
-                    const popup = document.getElementById("info-popup");
-                    if (popup) {
-                        popup.style.opacity = "0";
-                        setTimeout(() => {
-                            popup.remove();
-                        }, 500);
-                    }
-                });
-            }
-        }, 0);
-    }
-}
     // Call the showTestPopup function to display the popup
-    showTestPopup();
 
 	
 // Add new code here
@@ -3772,36 +3785,48 @@ document.addEventListener('DOMContentLoaded', function() {
 	
 	   
 
-    // Event listener for form submission
-    document.body.addEventListener('submit', function(event) {
-        if (event.target.id === 'object-type-restriction-form') {
-            event.preventDefault();
+ // Event listener for form submission in index.html
+document.body.addEventListener('submit', function(event) {
+    if (event.target.id === 'object-type-restriction-form') {
+        event.preventDefault();
 
-            var formData = {
-                marker: document.getElementById('allow-marker').checked,
-                rectangle: document.getElementById('allow-rectangle').checked,
-                circle: document.getElementById('allow-circle').checked,
-                polygon: document.getElementById('allow-polygon').checked
-            };
+        var formData = {
+            marker: document.getElementById('allow-marker').checked,
+            rectangle: document.getElementById('allow-rectangle').checked,
+            circle: document.getElementById('allow-circle').checked,
+            polygon: document.getElementById('allow-polygon').checked
+        };
 
-            console.log('Submitting allowed object types:', formData);
+        console.log('Submitting allowed object types:', formData);
 
-            fetch('/update-allowed-object-types', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(result => {
-                console.log('Allowed object types updated:', result);
-            })
-            .catch(error => {
-                console.error('Error updating allowed object types:', error);
-            });
-        }
-    });
+        // Construct the popup message
+        var enabledTypes = [];
+        if (formData.marker) enabledTypes.push("Marker");
+        if (formData.rectangle) enabledTypes.push("Rechteck");
+        if (formData.circle) enabledTypes.push("Kreis");
+        if (formData.polygon) enabledTypes.push("Polygon");
+
+        var message = "Allowed marking types restricted to XD: " + enabledTypes.join(", ") + ".";
+
+        fetch('/update-allowed-object-types', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log('Allowed object types updated XD:', result);
+            // Display the browser popup message
+            alert(message);
+        })
+        .catch(error => {
+            console.error('Error updating allowed object types XD:', error);
+        });
+    }
+});
+
 
     function fetchCategories() {
         fetch('/get-categories')
@@ -3824,6 +3849,8 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchCategories();
 
  // Map initialization and functionalities
+
+
 var map = L.map('admin-map').setView([48.4102, 15.6022], 15);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -4079,7 +4106,7 @@ map.addControl(drawControl);
 
                 categoryOrder.forEach(function(color) {
                     var count = data.color_counts[color];
-                    var colorCircle = $(`<span class="counter-color" style="background-color: ${color}; border: 2px solid ${isLightMode ? 'black' : 'white'};"></span>`);
+                    var colorCircle = $(`<span class="counter-color" style="background-color: ${color}; border: 2px solid #111111;"></span>`);
 					var listItem = $(`<li style="margin-right: 5px;">`).append(colorCircle).append(` ${count}`);
 
                     listItem.on('click', function() {
@@ -4288,10 +4315,6 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleOverlay(false);
     });
 
-      // Add a click event listener to the hamburger menu button
-    hamburgerButton.addEventListener('click', function() {
-        toggleOverlay(true);
-    });
 
     // Check screen size initially
     if (window.innerWidth > 768) {
@@ -4307,6 +4330,26 @@ document.addEventListener('DOMContentLoaded', function() {
     checkOverlayVisibility();
 
 </script>
+
+
+
+<script>
+// Event delegation to handle clicks on category buttons
+document.addEventListener('click', function(e) {
+    // Check if the clicked element has the 'categorybutton' class
+    if (e.target.classList.contains('categorybutton')) {
+        // Remove 'selected' class from all category buttons
+        document.querySelectorAll('.categorybutton').forEach(function(btn) {
+            btn.classList.remove('selected');
+        });
+
+        // Add 'selected' class to the clicked button
+        e.target.classList.add('selected');
+    }
+});
+</script>
+
+
 <script>
 function isMobileDevice() {
     const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -4351,7 +4394,82 @@ window.addEventListener("resize", updateBlockerVisibility, false);
 
 document.addEventListener("DOMContentLoaded", updateBlockerVisibility);
 </script>
+ <script>
+    // Toggle the navigation overlay when the hamburger button is clicked
+    document.getElementById('hamburger-button').addEventListener('click', function() {
+        var navOverlay = document.getElementById('nav-overlay');
+        navOverlay.classList.toggle('nav-overlay-active');
+    });
 
+    // Close the navigation overlay when clicking on the overlay background or on a non-button element
+    document.getElementById('nav-overlay').addEventListener('click', function(event) {
+        // Close only if the clicked element is not a button or a link
+        if (!event.target.closest('button, a')) {
+            closeNavOverlay();
+        }
+    });
+
+    // Function to close the navigation overlay
+    function closeNavOverlay() {
+        var navOverlay = document.getElementById('nav-overlay');
+        navOverlay.classList.remove('nav-overlay-active');
+    }
+
+    // Prevent closing when clicking on buttons (delegation)
+    document.getElementById('nav-links').addEventListener('click', function(event) {
+        if (event.target.tagName === 'BUTTON' || event.target.tagName === 'A') {
+            event.stopPropagation();
+        }
+    });
+
+    // Resize event listener
+    window.addEventListener('resize', function() {
+        // Check if the window width is greater than the threshold for mobile view
+        if (window.innerWidth > 1080) {
+            // Make sure the nav-overlay is displayed
+            document.getElementById('nav-overlay').classList.add('nav-overlay-active');
+        } else {
+            // For mobile view, revert back to the default behavior
+            document.getElementById('nav-overlay').classList.remove('nav-overlay-active');
+        }
+    });
+
+    // Call the function on page load to set the initial state
+
+	function toggleOverlay() {
+    var overlay = document.getElementById("category-choices");
+    if (overlay.style.display === "none") {
+        overlay.style.display = "flex";
+    } else {
+        overlay.style.display = "none";
+    }
+}
+
+        // JavaScript function to handle redirection to Stimmungskarte
+        function redirectToStimmungskarte() {
+            window.location.href = '/karte';
+        }
+
+        // JavaScript function to handle redirection to Suggest an Idea
+        function redirectToList() {
+            window.location.href = '/list';
+        }
+
+        // JavaScript function to handle redirection to List of Current Suggestions
+        function redirectToBeitraege() {
+            window.location.href = '/beitraege';
+        }
+		
+	function toggleMenu() {
+    var x = document.getElementById("nav-links");
+    if (x.style.display === "block") {
+        x.style.display = "none";
+    } else {
+        x.style.display = "block";
+    }
+}
+
+    </script>
 <script>
 // Global function to check if cookies are enabled
 function areCookiesEnabled() {

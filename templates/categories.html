@@ -41,12 +41,12 @@ body, html {
     border: none; /* Removes border */
     flex-grow: 1;
     flex-shrink: 1;
-    padding: 0.5px; /* Initial padding */
-    margin: 8px auto; /* Small vertical margin and auto horizontal margin for centering */
+    padding: 30px; /* Initial padding */
+    margin: 4px auto; /* Small vertical margin and auto horizontal margin for centering */
 }
 :root {
-    --outline-color-light: black; /* Outline color for light mode */
-    --outline-color-dark: white; /* Outline color for dark mode */
+    --outline-color-light: #111111; /* Outline color for light mode */
+    --outline-color-dark: #111111; /* Outline color for dark mode */
 }
 
 .categorybutton:hover {
@@ -61,7 +61,7 @@ body, html {
      
         .categorybutton h3 {
             margin: 0; /* Removes any default margin */
-            color: white;
+            color: #f5f1e4;
         }
 
 
@@ -79,7 +79,7 @@ body, html {
             justify-content: center; /* Horizontally center content */
             width: 100%;
             height: auto;
-			color: white;
+			color: #f5f1e4;
 			background-color: #3a3a3a;
             box-sizing: border-box; /* Ensure padding and border are included in the width */
             transition: background-color 0.2s ease-in-out;
@@ -234,8 +234,8 @@ window.makeButtonsVisible = makeButtonsVisible; // Expose the function to be cal
     function applyCategoryButtonStyles() {
         let isLightMode = localStorage.getItem('lightMode') === 'true';
         // Update CSS variables based on the light or dark mode
-        document.documentElement.style.setProperty('--outline-color-light', isLightMode ? 'black' : 'white');
-        document.documentElement.style.setProperty('--outline-color-dark', isLightMode ? 'white' : 'black');
+        document.documentElement.style.setProperty('--outline-color-light', isLightMode ? '#111111' : '#111111');
+        document.documentElement.style.setProperty('--outline-color-dark', isLightMode ? '#111111' : '#111111');
 
         let buttons = document.querySelectorAll('.categorybutton');
         buttons.forEach(button => {

@@ -30,28 +30,17 @@ CORS(app)  # This is to allow cross-origin requests, if needed.
 
 db = SQLAlchemy(app)
 
-class Shape(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    shape_data = db.Column(db.JSON, nullable=False)
-    shape_note = db.Column(db.String, nullable=True)
-    shape_type = db.Column(db.String, nullable=False)
-    shape_color = db.Column(db.String, nullable=True)
-    shape_imagelink = db.Column(db.String, nullable=True)  # Column to store image link
-    molen_id = db.Column(db.String, nullable=True, default="null")
-    score = db.Column(db.String, nullable=True, default="null")
-    highlight_id = db.Column(db.String, nullable=True, default="null")
-    radius = db.Column(db.Float, nullable=True)
-
+ 
 @app.before_request
 def before_request():
     if not hasattr(g, 'db_initialized'):
         db.create_all()
         g.db_initialized = True
 
-@app.route('/')
+@app.route('/stimmungskarte')
 def index():
     total_objects, category_counts, color_counts = count_objects()  # Assuming count_objects is already defined as per your previous messages.
-    return render_template('index.html', category_counts=category_counts, color_counts=color_counts, favicon=favicon)
+    return render_template('stimmungskarte.html', category_counts=category_counts, color_counts=color_counts, favicon=favicon)
 
 
 @app.route('/categories')
